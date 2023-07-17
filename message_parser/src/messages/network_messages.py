@@ -127,7 +127,7 @@ class AscPullAckMessage(NetworkMessage):
                 'balance': block['balance'],
                 'link': block['link'],
                 'signature': block['signature'],
-                'work': block['work'],
+                'work': str(block['work']),
             }
             self.blocks.append(block_dict)
 

@@ -1,6 +1,6 @@
 import sqlite3
 from abc import ABC, abstractmethod
-from src.messages.network_messages import *
+from src.messages import *
 from src.storage.impl.sql_message_mapper import *
 
 
@@ -19,7 +19,10 @@ class SQLiteStorage:
 
     @staticmethod
     def get_mapper_for_message(message):
-        if isinstance(message, ConfirmAckMessage):
+
+        if isinstance(message, BlockProcessorMessage):
+            return BlockProcessorMessageMapper(message)
+        elif isinstance(message, ConfirmAckMessage):
             return ConfirmAckMessageMapper(message)
         elif isinstance(message, ConfirmReqMessage):
             return ConfirmReqMessageMapper(message)

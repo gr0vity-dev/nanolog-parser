@@ -152,3 +152,36 @@ class ASCPullReqMessageMapper(NetworkMessageMapper):
         return super().get_table_schema() + [('id', 'text'), ('start', 'text'),
                                              ('start_type', 'text'),
                                              ('count', 'integer')]
+
+
+class BlockProcessorMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'result': self.message.result,
+            'block_type': self.message.block_type,
+            'hash': self.message.hash,
+            'account': self.message.account,
+            'previous': self.message.previous,
+            'representative': self.message.representative,
+            'balance': self.message.balance,
+            'link': self.message.link,
+            'signature': self.message.signature,
+            'work': self.message.work,
+            'forced': self.message.forced
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('result', 'text'),
+                                             ('block_type', 'text'),
+                                             ('hash', 'text'),
+                                             ('account', 'text'),
+                                             ('previous', 'text'),
+                                             ('representative', 'text'),
+                                             ('balance', 'text'),
+                                             ('link', 'text'),
+                                             ('signature', 'text'),
+                                             ('work', 'text'),
+                                             ('forced', 'bool')]
