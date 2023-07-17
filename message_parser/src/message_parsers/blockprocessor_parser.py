@@ -1,4 +1,4 @@
-from src.messages.blockprocessor_messages import BlockProcessorMessage
+from src.messages.message_blockprocessor import BlockProcessorMessage
 import re
 
 

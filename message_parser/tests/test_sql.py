@@ -1,5 +1,4 @@
-import tempfile
-from src.parser import Parser, MessageFactory
+from src.parser import MessageFactory
 from src.messages import *
 from src.storage.impl.sqlite_storage import SQLiteStorage
 import json

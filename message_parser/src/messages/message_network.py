@@ -1,6 +1,6 @@
 import re
 import json
-from .base import Message
+from .base_message import Message
 from .mixins import BaseAttributesMixin, HeaderMixin
 
 

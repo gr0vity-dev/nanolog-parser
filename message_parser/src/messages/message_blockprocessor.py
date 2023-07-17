@@ -1,4 +1,4 @@
-from .base import Message
+from .base_message import Message
 from .mixins import BaseAttributesMixin
 import re
 import json
