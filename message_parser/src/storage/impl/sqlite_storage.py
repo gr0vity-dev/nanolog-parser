@@ -1,76 +1,72 @@
-from ..storage import Storage
 import sqlite3
-import json
+from abc import ABC, abstractmethod
+from src.messages.network_messages import *
+from src.storage.impl.sql_message_mapper import *
 
 
 class SQLiteStorage:
 
-    def __init__(self, db_file):
-        self.conn = sqlite3.connect(db_file)
-
-    def _ensure_table_exists(self, message):
-        """Ensure the table for this message type exists. If not, create one."""
-        table_name = message.class_name.lower()
-        column_defs = []
-
-        # Add a column definition for each attribute of the message
-        for attr, value in message.__dict__.items():
-            if attr == 'hashes' or attr == 'roots':
-                value = 'TEXT'  # We will store list as comma-separated text
-            elif isinstance(value, int):
-                value = 'INTEGER'
-            elif isinstance(value, str):
-                value = 'TEXT'
-            else:
-                raise ValueError(
-                    f"Unhandled type for attribute {attr}: {type(value)}")
-            column_defs.append(f"{attr} {value}")
-
-        column_defs_sql = ', '.join(column_defs)
-
-        self.conn.execute(f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            {column_defs_sql}
-        );
-        """)
+    def __init__(self, db_name):
+        self.repository = SQLiteRepository(db_name)
 
     def store_message(self, message):
-        self._ensure_table_exists(message)
+        mapper = self.get_mapper_for_message(message)
+        table_name = mapper.get_table_name()
+        schema = mapper.get_table_schema()
+        self.repository.create_table_if_not_exists(table_name, schema)
+        data = mapper.to_dict()
+        self.repository.insert_data(table_name, data)
 
-        # Prepare the data to be inserted
-        data = {}
-        for attr, value in message.__dict__.items():
-            if attr == 'hashes' or attr == 'roots':
-                # Convert list to a comma-separated string
-                value = ', '.join([json.dumps(item) for item in value])
-            data[attr] = value
+    @staticmethod
+    def get_mapper_for_message(message):
+        if isinstance(message, ConfirmAckMessage):
+            return ConfirmAckMessageMapper(message)
+        elif isinstance(message, ConfirmReqMessage):
+            return ConfirmReqMessageMapper(message)
+        elif isinstance(message, PublishMessage):
+            return PublishMessageMapper(message)
+        elif isinstance(message, KeepAliveMessage):
+            return KeepAliveMessageMapper(message)
+        elif isinstance(message, AscPullAckMessage):
+            return ASCPullAckMessageMapper(message)
+        elif isinstance(message, AscPullReqMessage):
+            return ASCPullReqMessageMapper(message)
+        elif isinstance(message, NetworkMessage):
+            return NetworkMessageMapper(message)
+        else:
+            return MessageMapper(message)
 
-        columns_sql = ', '.join(data.keys())
-        placeholders_sql = ', '.join(['?'] * len(data))
-        values = tuple(data.values())
 
-        # Insert the data
-        self.conn.execute(
-            f"""
-        INSERT INTO {message.class_name.lower()} ({columns_sql})
-        VALUES ({placeholders_sql});
-        """, values)
+class SQLiteRepository:
 
+    def __init__(self, db_name):
+        self.conn = sqlite3.connect(db_name)
+        self.cursor = self.conn.cursor()
+
+    def create_table_if_not_exists(self, table_name, table_schema):
+        query = f"""
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            {', '.join([f'{column} {dtype}' for column, dtype in table_schema])}
+        );
+        """
+        self.cursor.execute(query)
         self.conn.commit()
 
-    def retrieve_message(self, id, message_type):
-        cursor = self.conn.cursor()
-        cursor.execute(f"SELECT * FROM {message_type} WHERE id = ?;", (id, ))
-        row = cursor.fetchone()
+    def insert_data(self, table_name, data):
+        placeholders = ', '.join(['?'] * len(data))
+        columns = ', '.join(data.keys())
+        values = tuple(data.values())
+        query = f"""
+        INSERT INTO {table_name} ({columns})
+        VALUES ({placeholders})
+        """
+        self.cursor.execute(query, values)
+        self.conn.commit()
 
-        if row is None:
-            return None
+    def get_data(self, table_name):
+        query = f"SELECT * FROM {table_name}"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
 
-        # Convert the timestamp back to integer
-        timestamp_index = list(map(lambda x: x[0],
-                                   cursor.description)).index('timestamp')
-        row = list(row)
-        row[timestamp_index] = int(row[timestamp_index])
-
-        return row
+    def close(self):
+        self.conn.close()

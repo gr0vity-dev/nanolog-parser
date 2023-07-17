@@ -114,7 +114,7 @@ class AscPullAckMessage(NetworkMessage):
 
     def parse_specific(self, message_dict):
         # Parse the id
-        self.id = message_dict['id']
+        self.id = str(message_dict['id'])
 
         # Parse the blocks
         for block in message_dict['blocks']:
@@ -143,7 +143,7 @@ class AscPullReqMessage(NetworkMessage):
 
     def parse_specific(self, message_dict):
         # Parse the additional fields
-        self.id = message_dict['id']
+        self.id = str(message_dict['id'])
         self.start = message_dict['start']
         self.start_type = message_dict['start_type']
         self.count = message_dict['count']
