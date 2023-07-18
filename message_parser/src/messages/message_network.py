@@ -8,7 +8,6 @@ def extract_message(line):
     # Using a regular expression to find the message part
     matches = re.findall(r'message=\{(.*)\}', line)
     match = "{" + matches[0] + "}" if matches else None
-    print("match found was:", match)
     return match
 
 
@@ -22,8 +21,8 @@ def fix_json_keys(string):
 
 class NetworkMessage(Message, BaseAttributesMixin, HeaderMixin):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def parse(self, line):
         self.parse_base_attributes(line)
@@ -40,8 +39,8 @@ class NetworkMessage(Message, BaseAttributesMixin, HeaderMixin):
 
 class ConfirmAckMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.account = None
         self.timestamp = None
         self.hashes = []
@@ -57,8 +56,8 @@ class ConfirmAckMessage(NetworkMessage):
 
 class ConfirmReqMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.roots = []
 
     def parse_specific(self,
@@ -69,8 +68,8 @@ class ConfirmReqMessage(NetworkMessage):
 
 class PublishMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.block_type = None
         self.hash = None
         self.account = None
@@ -96,8 +95,8 @@ class PublishMessage(NetworkMessage):
 
 class KeepAliveMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.peers = []
 
     def parse_specific(self, message_dict):
@@ -107,8 +106,8 @@ class KeepAliveMessage(NetworkMessage):
 
 class AscPullAckMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.id = None
         self.blocks = []
 
@@ -134,8 +133,8 @@ class AscPullAckMessage(NetworkMessage):
 
 class AscPullReqMessage(NetworkMessage):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.id = None
         self.start = None
         self.start_type = None

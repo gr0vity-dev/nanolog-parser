@@ -15,6 +15,7 @@ class MessageMapper:
             'log_process': self.message.log_process,
             'log_level': self.message.log_level,
             'log_event': self.message.log_event,
+            'log_file': self.message.log_file,
         }
 
     def get_table_schema(self):
@@ -23,6 +24,7 @@ class MessageMapper:
             ('log_process', 'text'),
             ('log_level', 'text'),
             ('log_event', 'text'),
+            ('log_file', 'text'),
         ]
 
 

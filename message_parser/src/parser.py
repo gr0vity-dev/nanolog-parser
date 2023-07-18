@@ -11,7 +11,7 @@ class Parser:
         with open(filename, 'r') as file:
             for line in file:
                 try:
-                    message = MessageFactory.create_message(line)
+                    message = MessageFactory.create_message(line, filename)
                     self.parsed_messages.append(message)
                 except ValueError:
                     self.ignored_lines += 1

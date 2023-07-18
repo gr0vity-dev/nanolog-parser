@@ -13,11 +13,7 @@ class NetworkParser:
         # add more network message types here
     }
 
-    @staticmethod
-    def register_message_type(key, message_type):
-        NetworkParser.MESSAGE_TYPES[key] = message_type
-
-    def parse_message(self, line):
+    def parse_message(self, line, filename=None):
         regex = r'"message_received" message={ header={ type="(.*?)",'
         message_type_match = re.search(regex, line)
 
@@ -30,4 +26,4 @@ class NetworkParser:
         if message_class is None:
             raise ValueError(f"Unknown message type {message_type}.")
 
-        return message_class().parse(line)
+        return message_class(filename).parse(line)

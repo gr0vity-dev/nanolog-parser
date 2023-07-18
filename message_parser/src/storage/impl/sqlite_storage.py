@@ -1,5 +1,4 @@
 import sqlite3
-from abc import ABC, abstractmethod
 from src.messages import *
 from src.storage.impl.sql_message_mapper import *
 

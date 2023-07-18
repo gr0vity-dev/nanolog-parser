@@ -20,7 +20,7 @@ class MessageFactory:
         return parser_class()
 
     @staticmethod
-    def create_message(line):
+    def create_message(line, filename=None):
         log_sources = '|'.join(MessageFactory.PARSERS.keys())
         log_source_match = re.search(r'\[(' + log_sources + ')]', line)
 
@@ -29,4 +29,5 @@ class MessageFactory:
 
         log_source = log_source_match.group(1)
         parser = MessageFactory.get_parser(log_source)
-        return parser.parse_message(line)
+        return parser.parse_message(line,
+                                    filename)  # pass filename to parse_message

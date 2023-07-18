@@ -5,11 +5,7 @@ import re
 class BlockprocessorParser:
     MESSAGE_TYPES = {'block_processed': BlockProcessorMessage}
 
-    @staticmethod
-    def register_message_type(key, message_type):
-        BlockprocessorParser.MESSAGE_TYPES[key] = message_type
-
-    def parse_message(self, line):
+    def parse_message(self, line, filename=None):
         regex = r'(block_processed)'
         message_type_match = re.search(regex, line)
 
@@ -22,4 +18,4 @@ class BlockprocessorParser:
         if message_class is None:
             raise ValueError(f"Unknown message type {message_type}.")
 
-        return message_class().parse(line)
+        return message_class(filename).parse(line)

@@ -234,3 +234,13 @@ def test_blockprocessor_message_parsing():
     assert message.link == 'F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2'
     assert message.signature == 'E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D'
     assert message.work == "10530317739669255306"
+
+
+def test_filename_parsing():
+    filename = 'sample_log.log'
+    line = '[2023-07-15 14:19:44.951] [network] [trace] "message_received" message={ header={ type="confirm_ack", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=4352 }, vote={ account="399385203231BC15F0DFB54A28152F03912A084285BB1ED83437DEF8C7F4815D", timestamp=18446744073709551615, hashes=[ "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B" ] } }'
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(
+        line, filename)  # pass filename to create_message
+    # Check if the filename is parsed correctly
+    assert message.log_file == filename

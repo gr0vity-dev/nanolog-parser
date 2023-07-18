@@ -44,9 +44,9 @@ def test_store_asc_pull_req_message():
     store_network_message(line)
 
 
-def store_network_message(line):
+def store_network_message(line, filename=None):
     # Create a Message instance and parse the line using MessageFactory
-    message = MessageFactory.create_message(line)
+    message = MessageFactory.create_message(line, filename)
     # Create a SQLiteStorage instance
     storage = SQLiteStorage(':memory:')
 
@@ -64,7 +64,7 @@ def store_network_message(line):
 
     # Create list of common properties
     common_properties = [
-        'log_timestamp', 'log_process', 'log_level', 'log_event',
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'log_file',
         'message_type', 'network', 'network_int', 'version', 'version_min',
         'version_max', 'extensions'
     ]
@@ -242,3 +242,10 @@ def test_store_many_confirm_ack():
 
     # Check if the number of stored messages is correct
     assert len(stored_messages) == num_messages
+
+
+def test_store_filename_in_message():
+    filename = 'sample_log.log'
+    line = '[2023-07-15 14:19:45.832] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
+    store_network_message(line,
+                          filename)  # pass filename to store_network_message
