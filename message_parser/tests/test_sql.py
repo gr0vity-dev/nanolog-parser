@@ -76,9 +76,22 @@ def store_network_message(line, filename=None):
     if message.class_name.lower() == 'confirmackmessage':
         assert stored_message_dict['account'] == message.account
         assert stored_message_dict['timestamp'] == message.timestamp
-        assert stored_message_dict['hashes'] == json.dumps(message.hashes)
+        cursor.execute(
+            f"SELECT hash FROM {message.class_name.lower()}_hashes WHERE confirmackmessage_id = ?;",
+            (stored_message_dict['sql_id'], ))
+        stored_hashes = [item[0] for item in cursor.fetchall()]
+        assert stored_hashes == message.hashes
+
     elif message.class_name.lower() == 'confirmreqmessage':
-        assert stored_message_dict['roots'] == json.dumps(message.roots)
+        cursor.execute(
+            f"SELECT root, hash FROM {message.class_name.lower()}_roots WHERE confirmreqmessage_id = ?;",
+            (stored_message_dict['sql_id'], ))
+        stored_roots = [{
+            'root': item[0],
+            'hash': item[1]
+        } for item in cursor.fetchall()]
+        assert stored_roots == message.roots
+
     elif message.class_name.lower() == 'publishmessage':
         assert stored_message_dict['block_type'] == message.block_type
         assert stored_message_dict['hash'] == message.hash
@@ -88,6 +101,7 @@ def store_network_message(line, filename=None):
         assert stored_message_dict['balance'] == message.balance
         assert stored_message_dict['link'] == message.link
         assert stored_message_dict['signature'] == message.signature
+
     elif message.class_name.lower() == 'keepalivemessage':
         assert stored_message_dict['peers'] == json.dumps(message.peers)
 
@@ -181,6 +195,7 @@ def test_store_random_confirm_ack():
     storage.store_message(message)
 
     # Retrieve the stored message
+    # Retrieve the stored message
     cursor = storage.repository.conn.cursor()
     cursor.execute(f"SELECT * FROM {message.class_name.lower()};")
     stored_message = cursor.fetchone()
@@ -202,7 +217,20 @@ def test_store_random_confirm_ack():
     assert stored_message_dict['extensions'] == message.extensions
     assert stored_message_dict['account'] == message.account
     assert stored_message_dict['timestamp'] == message.timestamp
-    assert stored_message_dict['hashes'] == json.dumps(message.hashes)
+
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT COUNT(*) FROM {message.class_name.lower()};")
+    row_count = cursor.fetchone()[0]
+
+    assert row_count == 1, f"Table {message.class_name.lower()} is empty after storing message."
+
+    # Query the hashes
+    cursor.execute(
+        f"SELECT hash FROM {message.class_name.lower()}_hashes WHERE confirmackmessage_id = ?;",
+        (stored_message_dict['sql_id'], ))
+    stored_hashes = [item[0] for item in cursor.fetchall()]
+
+    assert stored_hashes == message.hashes
 
 
 def test_store_many_confirm_ack():

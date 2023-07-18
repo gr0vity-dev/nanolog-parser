@@ -14,7 +14,14 @@ class SQLiteStorage:
         schema = mapper.get_table_schema()
         self.repository.create_table_if_not_exists(table_name, schema)
         data = mapper.to_dict()
-        self.repository.insert_data(table_name, data)
+        parent_id = self.repository.insert_data(table_name, data)
+        for related_data, related_mapper in mapper.get_related_entities():
+            related_data[mapper.parent_entity_name + '_id'] = parent_id
+            related_table_name = related_mapper.get_table_name()
+            related_schema = related_mapper.get_table_schema()
+            self.repository.create_table_if_not_exists(related_table_name,
+                                                       related_schema)
+            self.repository.insert_data(related_table_name, related_data)
 
     @staticmethod
     def get_mapper_for_message(message):

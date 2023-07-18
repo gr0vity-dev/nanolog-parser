@@ -1,13 +1,36 @@
 import json
+from abc import ABC, abstractmethod
 
 
-class MessageMapper:
+class BaseMapper(ABC):
+
+    @abstractmethod
+    def get_table_name(self):
+        pass
+
+    @abstractmethod
+    def to_dict(self):
+        pass
+
+    @abstractmethod
+    def get_table_schema(self):
+        pass
+
+    @abstractmethod
+    def get_related_entities(self):
+        pass
+
+
+class MessageMapper(BaseMapper):
 
     def __init__(self, message):
         self.message = message
 
     def get_table_name(self):
         return self.message.class_name.lower()
+
+    def get_related_entities(self):
+        return []
 
     def to_dict(self):
         return {
@@ -20,6 +43,7 @@ class MessageMapper:
 
     def get_table_schema(self):
         return [
+            ('sql_id', 'integer primary key autoincrement'),
             ('log_timestamp', 'text'),
             ('log_process', 'text'),
             ('log_level', 'text'),
@@ -62,7 +86,6 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
         data.update({
             'account': self.message.account,
             'timestamp': self.message.timestamp,
-            'hashes': json.dumps(self.message.hashes)
         })
         return data
 
@@ -70,19 +93,76 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
         return super().get_table_schema() + [
             ('account', 'text'),
             ('timestamp', 'integer'),
-            ('hashes', 'text'),
+            ('hash_count', 'integer'),
         ]
+
+    def get_related_entities(self):
+        return [({
+            'hash': hash_
+        }, self.ConfirmAckHashMapper(hash_)) for hash_ in self.message.hashes]
+
+    @property
+    def parent_entity_name(self):
+        return 'confirmackmessage'
+
+    class ConfirmAckHashMapper(BaseMapper):
+
+        def __init__(self, hash_):
+            self.hash = hash_
+
+        def to_dict(self):
+            return {'hash': self.hash}
+
+        def get_table_name(self):
+            return 'confirmackmessage_hashes'
+
+        def get_table_schema(self):
+            return [('id', 'integer primary key'),
+                    ('confirmackmessage_id', 'integer'), ('hash', 'text')]
+
+        def get_related_entities(self):
+            return []
 
 
 class ConfirmReqMessageMapper(NetworkMessageMapper):
 
     def to_dict(self):
         data = super().to_dict()
-        data.update({'roots': json.dumps(self.message.roots)})
         return data
 
     def get_table_schema(self):
-        return super().get_table_schema() + [('roots', 'text')]
+        return super().get_table_schema() + [
+            ('roots_count', 'integer'),
+        ]
+
+    def get_related_entities(self):
+        return [({
+            'root': root['root'],
+            'hash': root['hash']
+        }, self.ConfirmReqRootMapper(root)) for root in self.message.roots]
+
+    @property
+    def parent_entity_name(self):
+        return 'confirmreqmessage'
+
+    class ConfirmReqRootMapper(BaseMapper):
+
+        def __init__(self, root):
+            self.root = root
+
+        def to_dict(self):
+            return self.root
+
+        def get_table_name(self):
+            return 'confirmreqmessage_roots'
+
+        def get_table_schema(self):
+            return [('id', 'integer primary key'),
+                    ('confirmreqmessage_id', 'integer'), ('root', 'text'),
+                    ('hash', 'text')]
+
+        def get_related_entities(self):
+            return []
 
 
 class PublishMessageMapper(NetworkMessageMapper):
