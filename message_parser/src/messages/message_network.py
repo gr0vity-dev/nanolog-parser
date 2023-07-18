@@ -44,6 +44,7 @@ class ConfirmAckMessage(NetworkMessage):
         self.account = None
         self.timestamp = None
         self.hashes = []
+        self.hash_count = None
 
     def parse_specific(self,
                        message_dict):  # Overriding method from NetworkMessage
@@ -52,6 +53,7 @@ class ConfirmAckMessage(NetworkMessage):
         self.timestamp = self.normalize_timestamp(
             message_dict['vote']['timestamp'])
         self.hashes = message_dict['vote']['hashes']
+        self.hash_count = len(self.hashes)
 
 
 class ConfirmReqMessage(NetworkMessage):
@@ -59,11 +61,13 @@ class ConfirmReqMessage(NetworkMessage):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.roots = []
+        self.root_count = None
 
     def parse_specific(self,
                        message_dict):  # Overriding method from NetworkMessage
         # Parse the roots
         self.roots = message_dict['roots']
+        self.root_count = len(self.roots)
 
 
 class PublishMessage(NetworkMessage):

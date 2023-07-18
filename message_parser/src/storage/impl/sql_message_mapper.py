@@ -86,6 +86,7 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
         data.update({
             'account': self.message.account,
             'timestamp': self.message.timestamp,
+            'hash_count': self.message.hash_count,
         })
         return data
 
@@ -128,11 +129,14 @@ class ConfirmReqMessageMapper(NetworkMessageMapper):
 
     def to_dict(self):
         data = super().to_dict()
+        data.update({
+            'root_count': self.message.root_count,
+        })
         return data
 
     def get_table_schema(self):
         return super().get_table_schema() + [
-            ('roots_count', 'integer'),
+            ('root_count', 'integer'),
         ]
 
     def get_related_entities(self):
