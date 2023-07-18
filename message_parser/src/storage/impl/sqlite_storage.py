@@ -41,9 +41,12 @@ class SQLiteStorage:
 
 class SQLiteRepository:
 
-    def __init__(self, db_name):
+    def __init__(self, db_name, batch_size=500):  # Add a batch_size parameter
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
+        self.cursor.execute("PRAGMA journal_mode=WAL")
+        self.batch_size = batch_size
+        self.batch_count = 0
 
     def create_table_if_not_exists(self, table_name, table_schema):
         query = f"""
@@ -52,7 +55,7 @@ class SQLiteRepository:
         );
         """
         self.cursor.execute(query)
-        self.conn.commit()
+        self.maybe_commit()
 
     def insert_data(self, table_name, data):
         placeholders = ', '.join(['?'] * len(data))
@@ -63,12 +66,18 @@ class SQLiteRepository:
         VALUES ({placeholders})
         """
         self.cursor.execute(query, values)
-        self.conn.commit()
+        self.maybe_commit()
+        return self.cursor.lastrowid  # return the last inserted id
 
-    def get_data(self, table_name):
-        query = f"SELECT * FROM {table_name}"
-        self.cursor.execute(query)
-        return self.cursor.fetchall()
+    def maybe_commit(self):
+        # Increment the batch counter
+        self.batch_count += 1
+        # If we've reached the batch size, commit and reset the counter
+        if self.batch_count >= self.batch_size:
+            self.conn.commit()
+            self.batch_count = 0
 
     def close(self):
+        # When we're done, make sure to commit any outstanding changes
+        self.conn.commit()
         self.conn.close()
