@@ -59,6 +59,7 @@ def test_confirm_ack_message_parse():
     assert message.hashes == [
         "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B"
     ]
+    assert message.vote_type == "final"
 
 
 def test_message_parsing():
@@ -244,3 +245,68 @@ def test_filename_parsing():
         line, filename)  # pass filename to create_message
     # Check if the filename is parsed correctly
     assert message.log_file == filename
+
+
+def test_node_process_confirmed_message_parsing():
+    line = '[2023-07-18 20:46:14.798] [node] [trace] "process_confirmed" block={ type="state", hash="85EE57C6AB8E09FFDD1E656F47F7CC6598ADD48BE2F7B9F8B811CD9096E77C06", sideband={ successor="0000000000000000000000000000000000000000000000000000000000000000", account="0000000000000000000000000000000000000000000000000000000000000000", balance="00000000000000000000000000000000", height=2, timestamp=1689713164, source_epoch="epoch_begin", details={ epoch="epoch_2", is_send=false, is_receive=false, is_epoch=false } }, account="4005DB9BB6BC221383E80FBA1D5924C73580EA8573349513DA2EFA30F2D1A23C", previous="2A38C093945A920DC68F35F45195A88446A37E58F110FF022C71FD61C10D4D1C", representative="39870A8DC9C5D73DB1E53CBB69D5A4A59AAC46C579CB009D2D31C0BFD8058835", balance="00000000000000000000000000000001", link="0000000000000000000000000000000000000000000000000000000000000000", signature="7A3D8EC7DA648010853C3F7BEEC8D6E760B7C8CC940D8393362068558A086230DFF14D1ED88921E41EEFE5AD57D66D2332D1250159758AFA31943CEA2B137D02", work=2438566069390192728 }'
+    message = NodeProcessConfirmedMessage().parse(line)
+
+    # Assertions for base attributes
+    assert message.log_timestamp == '2023-07-18 20:46:14.798'
+    assert message.log_process == 'node'
+    assert message.log_level == 'trace'
+    assert message.log_event == 'process_confirmed'
+
+    # Assertions for specific fields
+    assert message.block_type == 'state'
+    assert message.hash == '85EE57C6AB8E09FFDD1E656F47F7CC6598ADD48BE2F7B9F8B811CD9096E77C06'
+    assert message.account == '4005DB9BB6BC221383E80FBA1D5924C73580EA8573349513DA2EFA30F2D1A23C'
+    assert message.previous == '2A38C093945A920DC68F35F45195A88446A37E58F110FF022C71FD61C10D4D1C'
+    assert message.representative == '39870A8DC9C5D73DB1E53CBB69D5A4A59AAC46C579CB009D2D31C0BFD8058835'
+    assert message.balance == '00000000000000000000000000000001'
+    assert message.link == '0000000000000000000000000000000000000000000000000000000000000000'
+    assert message.signature == '7A3D8EC7DA648010853C3F7BEEC8D6E760B7C8CC940D8393362068558A086230DFF14D1ED88921E41EEFE5AD57D66D2332D1250159758AFA31943CEA2B137D02'
+    assert message.work == "2438566069390192728"
+    assert message.sideband[
+        'successor'] == '0000000000000000000000000000000000000000000000000000000000000000'
+    assert message.sideband[
+        'account'] == '0000000000000000000000000000000000000000000000000000000000000000'
+    assert message.sideband['balance'] == '00000000000000000000000000000000'
+    assert message.sideband['height'] == 2
+    assert message.sideband['timestamp'] == 1689713164
+    assert message.sideband['source_epoch'] == 'epoch_begin'
+    assert message.sideband['details']['epoch'] == 'epoch_2'
+    assert not message.sideband['details']['is_send']
+    assert not message.sideband['details']['is_receive']
+    assert not message.sideband['details']['is_epoch']
+
+
+def test_active_transactions_message_parsing():
+    line_started = '[2023-07-19 08:24:43.500] [active_transactions] [trace] "active_started" root="385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A", hash="CE40A97D9ACA6A6890F28B076ADE1CC6001B0BA017D3A629D02D31F1B2C03A98", behaviour="normal"'
+    line_stopped = '[2023-07-19 08:24:43.749] [active_transactions] [trace] "active_stopped" root="68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32", hashes=[ "77B0B617A49B12B6A5F1CE6D063337A1DD8B365EBCA1CD18FD92D761037D1F3E" ], behaviour="normal", confirmed=true'
+
+    message_started = ActiveStartedMessage().parse(line_started)
+    message_stopped = ActiveStoppedMessage().parse(line_stopped)
+
+    # Assertions for base attributes
+    assert message_started.log_timestamp == '2023-07-19 08:24:43.500'
+    assert message_started.log_process == 'active_transactions'
+    assert message_started.log_level == 'trace'
+    assert message_started.log_event == 'active_started'
+
+    assert message_stopped.log_timestamp == '2023-07-19 08:24:43.749'
+    assert message_stopped.log_process == 'active_transactions'
+    assert message_stopped.log_level == 'trace'
+    assert message_stopped.log_event == 'active_stopped'
+
+    # Assertions for specific fields
+    assert message_started.root == '385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A'
+    assert message_started.hash == 'CE40A97D9ACA6A6890F28B076ADE1CC6001B0BA017D3A629D02D31F1B2C03A98'
+    assert message_started.behaviour == 'normal'
+
+    assert message_stopped.root == '68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32'
+    assert message_stopped.hashes == [
+        '77B0B617A49B12B6A5F1CE6D063337A1DD8B365EBCA1CD18FD92D761037D1F3E'
+    ]
+    assert message_stopped.behaviour == 'normal'
+    assert message_stopped.confirmed == True

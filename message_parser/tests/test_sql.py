@@ -8,6 +8,11 @@ import json
 from datetime import datetime, timedelta
 
 
+def test_store_nodeprocessconfirmed_message():
+    line = '[2023-07-18 20:46:14.798] [node] [trace] "process_confirmed" block={ type="state", hash="85EE57C6AB8E09FFDD1E656F47F7CC6598ADD48BE2F7B9F8B811CD9096E77C06", sideband={ successor="0000000000000000000000000000000000000000000000000000000000000000", account="0000000000000000000000000000000000000000000000000000000000000000", balance="00000000000000000000000000000000", height=2, timestamp=1689713164, source_epoch="epoch_begin", details={ epoch="epoch_2", is_send=false, is_receive=false, is_epoch=false } }, account="4005DB9BB6BC221383E80FBA1D5924C73580EA8573349513DA2EFA30F2D1A23C", previous="2A38C093945A920DC68F35F45195A88446A37E58F110FF022C71FD61C10D4D1C", representative="39870A8DC9C5D73DB1E53CBB69D5A4A59AAC46C579CB009D2D31C0BFD8058835", balance="00000000000000000000000000000001", link="0000000000000000000000000000000000000000000000000000000000000000", signature="7A3D8EC7DA648010853C3F7BEEC8D6E760B7C8CC940D8393362068558A086230DFF14D1ED88921E41EEFE5AD57D66D2332D1250159758AFA31943CEA2B137D02", work=2438566069390192728 }'
+    store_nodeprocessconfirmed_message(line)
+
+
 def test_store_blockprocessor_message():
     line = '[2023-07-15 14:19:48.287] [blockprocessor] [trace] "block_processed" result="gap_previous", block={ type="state", hash="160F1EF61CFC73D2DBF2B249AA38B9965BF441EEF4312E9A89BDB58A22CF32FE", account="EBB66C545B0ED5F248256E281E13B09829518435C4C05E705BB70F2DF625E060", previous="9C490F4525EA5E6EAA4E76869B7073D5BD452D11B2CEB6CC34353856519D2075", representative="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", balance="00000000000000000000000000000000", link="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", signature="E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D", work=10530317739669255306 }, forced=false'
     store_blockprocessor_message(line)
@@ -75,6 +80,8 @@ def store_network_message(line, filename=None):
     # Additional checks based on specific message type
     if message.class_name.lower() == 'confirmackmessage':
         assert stored_message_dict['account'] == message.account
+        assert stored_message_dict['hash_count'] == message.hash_count
+        assert stored_message_dict['vote_type'] == message.vote_type
         assert stored_message_dict['timestamp'] == message.timestamp
         cursor.execute(
             f"SELECT hash FROM {message.class_name.lower()}_hashes WHERE confirmackmessage_id = ?;",
@@ -277,3 +284,91 @@ def test_store_filename_in_message():
     line = '[2023-07-15 14:19:45.832] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
     store_network_message(line,
                           filename)  # pass filename to store_network_message
+
+
+def store_nodeprocessconfirmed_message(line):
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line)
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM {message.class_name.lower()};")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'block_type',
+        'hash', 'account', 'previous', 'representative', 'balance', 'link',
+        'signature', 'work', 'sideband'
+    ]
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        if property == 'sideband':
+            # Since sideband is stored as a json string, we need to load it back into a dictionary for comparison
+            assert json.loads(stored_message_dict[property]) == getattr(
+                message, property)
+        else:
+            assert stored_message_dict[property] == getattr(message, property)
+
+
+def test_store_activetransactionsstarted_message():
+    line_started = '[2023-07-19 08:24:43.500] [active_transactions] [trace] "active_started" root="385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A", hash="CE40A97D9ACA6A6890F28B076ADE1CC6001B0BA017D3A629D02D31F1B2C03A98", behaviour="normal"'
+    store_active_transactions_message_combined(line_started,
+                                               'activestartedmessage')
+
+
+def test_store_activetransactionsstopped_message():
+    line_stopped = '[2023-07-19 08:24:43.749] [active_transactions] [trace] "active_stopped" root="68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32", hashes=[ "77B0B617A49B12B6A5F1CE6D063337A1DD8B365EBCA1CD18FD92D761037D1F3E" ], behaviour="normal", confirmed=true'
+    store_active_transactions_message_combined(line_stopped,
+                                               'activestoppedmessage')
+
+
+def store_active_transactions_message_combined(line, sql_class_name):
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line)
+
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM {sql_class_name.lower()};")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'root',
+        'behaviour'
+    ]
+
+    if sql_class_name.lower() == 'activestartedmessage':
+        common_properties.extend(['hash'])
+
+    if sql_class_name.lower() == 'activestoppedmessage':
+        cursor.execute(
+            f"SELECT hash FROM {message.class_name.lower()}_hashes WHERE activestoppedmessage_id = ?;",
+            (stored_message_dict['sql_id'], ))
+        stored_hashes = [item[0] for item in cursor.fetchall()]
+        assert stored_hashes == message.hashes
+        #common_properties.extend(['hashes', 'confirmed'])
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        assert stored_message_dict[property] == getattr(message, property)

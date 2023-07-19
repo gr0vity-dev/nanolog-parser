@@ -87,6 +87,7 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
             'account': self.message.account,
             'timestamp': self.message.timestamp,
             'hash_count': self.message.hash_count,
+            'vote_type': self.message.vote_type,
         })
         return data
 
@@ -95,6 +96,7 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
             ('account', 'text'),
             ('timestamp', 'integer'),
             ('hash_count', 'integer'),
+            ('vote_type', 'text'),
         ]
 
     def get_related_entities(self):
@@ -271,3 +273,97 @@ class BlockProcessorMessageMapper(MessageMapper):
                                              ('signature', 'text'),
                                              ('work', 'text'),
                                              ('forced', 'bool')]
+
+
+class NodeProcessConfirmedMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'block_type': self.message.block_type,
+            'hash': self.message.hash,
+            'account': self.message.account,
+            'previous': self.message.previous,
+            'representative': self.message.representative,
+            'balance': self.message.balance,
+            'link': self.message.link,
+            'signature': self.message.signature,
+            'work': self.message.work,
+            'sideband':
+            json.dumps(self.message.sideband)  # save as json string
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('block_type', 'text'),
+                                             ('hash', 'text'),
+                                             ('account', 'text'),
+                                             ('previous', 'text'),
+                                             ('representative', 'text'),
+                                             ('balance', 'text'),
+                                             ('link', 'text'),
+                                             ('signature', 'text'),
+                                             ('work', 'text'),
+                                             ('sideband', 'jsonb')]
+
+
+class ActiveStartedMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root': self.message.root,
+            'hash': self.message.hash,
+            'behaviour': self.message.behaviour,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('root', 'text'),
+                                             ('hash', 'text'),
+                                             ('behaviour', 'text')]
+
+
+class ActiveStoppedMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root': self.message.root,
+            'behaviour': self.message.behaviour,
+            'confirmed': self.message.confirmed,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('root', 'text'),
+                                             ('behaviour', 'text'),
+                                             ('confirmed', 'boolean')]
+
+    def get_related_entities(self):
+        return [({
+            'hash': hash_
+        }, self.ActiveStoppedHashMapper(hash_))
+                for hash_ in self.message.hashes]
+
+    @property
+    def parent_entity_name(self):
+        return 'activestoppedmessage'
+
+    class ActiveStoppedHashMapper(BaseMapper):
+
+        def __init__(self, hash_):
+            self.hash = hash_
+
+        def to_dict(self):
+            return {'hash': self.hash}
+
+        def get_table_name(self):
+            return 'activestoppedmessage_hashes'
+
+        def get_table_schema(self):
+            return [('id', 'integer primary key'),
+                    ('activestoppedmessage_id', 'integer'), ('hash', 'text')]
+
+        def get_related_entities(self):
+            return []

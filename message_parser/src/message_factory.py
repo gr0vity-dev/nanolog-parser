@@ -1,12 +1,14 @@
 # file: message_factory.py
-from src.message_parsers import BlockprocessorParser, NetworkParser
+from src.message_parsers import BlockprocessorParser, NetworkParser, NodeParser, ActiveTransactionsParser
 import re
 
 
 class MessageFactory:
     PARSERS = {
         'network': NetworkParser,
-        'blockprocessor': BlockprocessorParser
+        'blockprocessor': BlockprocessorParser,
+        'node': NodeParser,
+        'active_transactions': ActiveTransactionsParser
         # add more parsers here
     }
 

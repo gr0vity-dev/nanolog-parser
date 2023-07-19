@@ -28,6 +28,12 @@ class SQLiteStorage:
 
         if isinstance(message, BlockProcessorMessage):
             return BlockProcessorMessageMapper(message)
+        elif isinstance(message, NodeProcessConfirmedMessage):
+            return NodeProcessConfirmedMessageMapper(message)
+        elif isinstance(message, ActiveStartedMessage):
+            return ActiveStartedMessageMapper(message)
+        elif isinstance(message, ActiveStoppedMessage):
+            return ActiveStoppedMessageMapper(message)
         elif isinstance(message, ConfirmAckMessage):
             return ConfirmAckMessageMapper(message)
         elif isinstance(message, ConfirmReqMessage):

@@ -45,6 +45,7 @@ class ConfirmAckMessage(NetworkMessage):
         self.timestamp = None
         self.hashes = []
         self.hash_count = None
+        self.vote_type = None
 
     def parse_specific(self,
                        message_dict):  # Overriding method from NetworkMessage
@@ -54,6 +55,7 @@ class ConfirmAckMessage(NetworkMessage):
             message_dict['vote']['timestamp'])
         self.hashes = message_dict['vote']['hashes']
         self.hash_count = len(self.hashes)
+        self.vote_type = "final" if self.timestamp == -1 else "normal"
 
 
 class ConfirmReqMessage(NetworkMessage):
