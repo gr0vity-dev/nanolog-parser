@@ -21,25 +21,6 @@ def fix_json_keys(string):
 
 class BlockProcessorMessage(Message, BaseAttributesMixin):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.result = None
-        self.block_type = None
-        self.hash = None
-        self.account = None
-        self.previous = None
-        self.representative = None
-        self.balance = None
-        self.link = None
-        self.signature = None
-        self.work = None
-        self.forced = None
-
-    def parse(self, line):
-        self.parse_base_attributes(line)
-        self.parse_specific(line)
-        return self
-
     def parse_specific(self, line):
         self.result = self.extract_result(line)
         self.forced = self.extract_forced(line)

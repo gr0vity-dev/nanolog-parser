@@ -11,7 +11,9 @@ class Parser:
         with open(filename, 'r') as file:
             for line in file:
                 try:
-                    message = MessageFactory.create_message(line, filename)
+                    message = MessageFactory.create_message(
+                        line,
+                        filename.replace("node_spd_", "").replace(".log", ""))
                     self.parsed_messages.append(message)
                 except ValueError:
                     self.ignored_lines += 1

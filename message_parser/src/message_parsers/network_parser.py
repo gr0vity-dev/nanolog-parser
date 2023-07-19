@@ -1,8 +1,8 @@
+from .base_parser import BaseParser
 from src.messages.message_network import ConfirmAckMessage, ConfirmReqMessage, PublishMessage, KeepAliveMessage, AscPullAckMessage, AscPullReqMessage
-import re
 
 
-class NetworkParser:
+class NetworkParser(BaseParser):
     MESSAGE_TYPES = {
         'confirm_ack': ConfirmAckMessage,
         'confirm_req': ConfirmReqMessage,
@@ -13,17 +13,5 @@ class NetworkParser:
         # add more network message types here
     }
 
-    def parse_message(self, line, filename=None):
-        regex = r'"message_received" message={ header={ type="(.*?)",'
-        message_type_match = re.search(regex, line)
-
-        if not message_type_match:
-            raise ValueError(f"No message type found. Wrong log format.")
-
-        message_type = message_type_match.group(1)
-        message_class = self.MESSAGE_TYPES.get(message_type)
-
-        if message_class is None:
-            raise ValueError(f"Unknown message type {message_type}.")
-
-        return message_class(filename).parse(line)
+    def get_message_type_regex(self):
+        return r'"message_received" message={ header={ type="(.*?)",'

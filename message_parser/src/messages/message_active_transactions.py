@@ -1,20 +1,8 @@
 from .base_message import Message
-from .mixins import BaseAttributesMixin
 import re
 
 
-class ActiveStartedMessage(Message, BaseAttributesMixin):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.root = None
-        self.hash = None
-        self.behaviour = None
-
-    def parse(self, line):
-        self.parse_base_attributes(line)
-        self.parse_specific(line)
-        return self
+class ActiveStartedMessage(Message):
 
     def parse_specific(self, line):
         regex = r'root="(?P<root>[^"]+)", hash="(?P<hash>[^"]+)", behaviour="(?P<behaviour>[^"]+)"'
@@ -26,19 +14,7 @@ class ActiveStartedMessage(Message, BaseAttributesMixin):
             self.behaviour = match.group('behaviour')
 
 
-class ActiveStoppedMessage(Message, BaseAttributesMixin):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.root = None
-        self.hashes = None
-        self.behaviour = None
-        self.confirmed = None
-
-    def parse(self, line):
-        self.parse_base_attributes(line)
-        self.parse_specific(line)
-        return self
+class ActiveStoppedMessage(Message):
 
     def parse_specific(self, line):
         regex = r'root="(?P<root>[^"]+)", hashes=\[(?P<hashes>[^]]+)\], behaviour="(?P<behaviour>[^"]+)", confirmed=(?P<confirmed>\w+)'

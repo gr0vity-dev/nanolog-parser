@@ -1,21 +1,11 @@
+from .base_parser import BaseParser
 from src.messages.message_blockprocessor import BlockProcessorMessage
 import re
 
 
-class BlockprocessorParser:
+class BlockprocessorParser(BaseParser):
+
     MESSAGE_TYPES = {'block_processed': BlockProcessorMessage}
 
-    def parse_message(self, line, filename=None):
-        regex = r'(block_processed)'
-        message_type_match = re.search(regex, line)
-
-        if not message_type_match:
-            raise ValueError(f"No message type found. Wrong log format.")
-
-        message_type = message_type_match.group(0)
-        message_class = self.MESSAGE_TYPES.get(message_type)
-
-        if message_class is None:
-            raise ValueError(f"Unknown message type {message_type}.")
-
-        return message_class(filename).parse(line)
+    def get_message_type_regex(self):
+        return r'(block_processed)'
