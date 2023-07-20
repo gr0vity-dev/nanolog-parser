@@ -1,9 +1,9 @@
 from .base_parser import BaseParser
-from src.messages.message_node import NodeProcessConfirmedMessage
+from src.messages import NodeProcessConfirmedMessage
 
 
 class NodeParser(BaseParser):
     MESSAGE_TYPES = {'process_confirmed': NodeProcessConfirmedMessage}
 
     def get_message_type_regex(self):
-        return r'(process_confirmed)'
+        return r'\[node\] \[\w+\] "(\w+)"'

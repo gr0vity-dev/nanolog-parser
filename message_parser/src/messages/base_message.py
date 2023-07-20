@@ -14,7 +14,7 @@ class Message(ABC, BaseAttributesMixin):
 
     def parse(self, line):
         self.parse_base_attributes(line)
-        self.parse_specific(line)
+        self.parse_specific(self.remainder)
         return self
 
     @abstractmethod

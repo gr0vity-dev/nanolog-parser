@@ -1,5 +1,5 @@
 from .base_parser import BaseParser
-from src.messages.message_network import ConfirmAckMessage, ConfirmReqMessage, PublishMessage, KeepAliveMessage, AscPullAckMessage, AscPullReqMessage
+from src.messages import ConfirmAckMessage, ConfirmReqMessage, PublishMessage, KeepAliveMessage, AscPullAckMessage, AscPullReqMessage
 
 
 class NetworkParser(BaseParser):

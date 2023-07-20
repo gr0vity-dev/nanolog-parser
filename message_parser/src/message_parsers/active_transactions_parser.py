@@ -1,5 +1,5 @@
 from .base_parser import BaseParser
-from src.messages.message_active_transactions import ActiveStartedMessage, ActiveStoppedMessage
+from src.messages import ActiveStartedMessage, ActiveStoppedMessage
 
 
 class ActiveTransactionsParser(BaseParser):
@@ -10,4 +10,4 @@ class ActiveTransactionsParser(BaseParser):
     }
 
     def get_message_type_regex(self):
-        return r'("active_started"|"active_stopped")'
+        return r'\[active_transactions\] \[trace\] "(\w+)"'

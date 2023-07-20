@@ -8,4 +8,4 @@ class BlockprocessorParser(BaseParser):
     MESSAGE_TYPES = {'block_processed': BlockProcessorMessage}
 
     def get_message_type_regex(self):
-        return r'(block_processed)'
+        return r'\[blockprocessor\] \[trace\] "(\w+)"'

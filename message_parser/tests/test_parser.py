@@ -1,6 +1,8 @@
 import tempfile
 from src.parser import Parser, MessageFactory
 from src.messages import *
+import src.message_parsers
+from src.message_parsers.base_parser import BaseParser
 
 
 def test_message_factory():
@@ -8,6 +10,25 @@ def test_message_factory():
     line = '[2023-07-15 14:19:44.951] [network] [trace] "message_received" message={ header={ type="confirm_ack", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=4352 }, vote={ account="399385203231BC15F0DFB54A28152F03912A084285BB1ED83437DEF8C7F4815D", timestamp=18446744073709551615, hashes=[ "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B" ] } }'
     message = MessageFactory.create_message(line)
     assert isinstance(message, ConfirmAckMessage)
+
+
+def test_all_parsers_are_included():
+    # Get all classes defined in the message_parsers package
+    all_classes = [
+        getattr(src.message_parsers, attr_name)
+        for attr_name in dir(src.message_parsers)
+    ]
+
+    # Filter the classes to include only parser classes
+    parser_classes = [
+        cls for cls in all_classes
+        if isinstance(cls, type) and issubclass(cls, BaseParser)
+    ]
+
+    # Assert that every parser class is included in the PARSERS dictionary
+    for parser_class in parser_classes:
+        assert parser_class in MessageFactory.PARSERS.values(
+        ), f"{parser_class.__name__} not found in MessageFactory.PARSERS"
 
 
 def test_parser():
@@ -26,13 +47,13 @@ def test_parser():
     parser.load_and_parse_file(temp_file_name)
 
     # Assert the file was parsed correctly
-    assert len(parser.parsed_messages) == 1
-    assert parser.ignored_lines == 1
+    assert len(parser.parsed_messages) == 2
 
     # Test the report
     report = parser.report()
+    print("REPORT", report)
     assert report["message_report"]["ConfirmAckMessage"] == 1
-    assert report["ignored_lines"] == 1
+    assert report["message_report"]["UnknownMessage"] == 1
 
 
 def test_confirm_ack_message_parse():
@@ -281,12 +302,10 @@ def test_node_process_confirmed_message_parsing():
     assert not message.sideband['details']['is_epoch']
 
 
-def test_active_transactions_message_parsing():
+def test_active_transactions_started_message_parsing():
     line_started = '[2023-07-19 08:24:43.500] [active_transactions] [trace] "active_started" root="385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A", hash="CE40A97D9ACA6A6890F28B076ADE1CC6001B0BA017D3A629D02D31F1B2C03A98", behaviour="normal"'
-    line_stopped = '[2023-07-19 08:24:43.749] [active_transactions] [trace] "active_stopped" root="68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32", hashes=[ "77B0B617A49B12B6A5F1CE6D063337A1DD8B365EBCA1CD18FD92D761037D1F3E" ], behaviour="normal", confirmed=true'
 
     message_started = ActiveStartedMessage().parse(line_started)
-    message_stopped = ActiveStoppedMessage().parse(line_stopped)
 
     # Assertions for base attributes
     assert message_started.log_timestamp == '2023-07-19 08:24:43.500'
@@ -294,15 +313,21 @@ def test_active_transactions_message_parsing():
     assert message_started.log_level == 'trace'
     assert message_started.log_event == 'active_started'
 
-    assert message_stopped.log_timestamp == '2023-07-19 08:24:43.749'
-    assert message_stopped.log_process == 'active_transactions'
-    assert message_stopped.log_level == 'trace'
-    assert message_stopped.log_event == 'active_stopped'
-
     # Assertions for specific fields
     assert message_started.root == '385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A385D9F01FCEBBE15F123FA80AEC4D86EEA7991EBBCCB6370A0E4260E2B8B920A'
     assert message_started.hash == 'CE40A97D9ACA6A6890F28B076ADE1CC6001B0BA017D3A629D02D31F1B2C03A98'
     assert message_started.behaviour == 'normal'
+
+
+def test_active_transactions_stopped_message_parsing():
+    line_stopped = '[2023-07-19 08:24:43.749] [active_transactions] [trace] "active_stopped" root="68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32", hashes=[ "77B0B617A49B12B6A5F1CE6D063337A1DD8B365EBCA1CD18FD92D761037D1F3E" ], behaviour="normal", confirmed=true'
+
+    message_stopped = ActiveStoppedMessage().parse(line_stopped)
+
+    assert message_stopped.log_timestamp == '2023-07-19 08:24:43.749'
+    assert message_stopped.log_process == 'active_transactions'
+    assert message_stopped.log_level == 'trace'
+    assert message_stopped.log_event == 'active_stopped'
 
     assert message_stopped.root == '68F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE3268F074B216C89322BC26ACB7AEA3BBE9928EF091A80CBD2B4008E1A731D8BE32'
     assert message_stopped.hashes == [
@@ -344,3 +369,33 @@ def test_parse_generate_vote_final_message():
     assert isinstance(message, GenerateVoteFinalMessage)
     assert message.root == "355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE"
     assert message.hash == "D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"
+
+
+def test_unknown_parser_with_event():
+    line_unknown = '[2023-07-20 08:41:38.398] [unknown_message] [trace] "unkown_event" some text that should be stored as content in the sql column'
+    message = MessageFactory.create_message(line_unknown)
+
+    # print out the type of message
+    print(type(message))
+
+    assert isinstance(message, UnknownMessage)
+
+    assert message.log_timestamp == "2023-07-20 08:41:38.398"
+    assert message.log_process == "unknown_message"
+    assert message.log_level == "trace"
+    assert message.content == "some text that should be stored as content in the sql column"
+
+
+def test_unknown_parser():
+    line_unknown = '[2023-07-20 08:41:38.398] [unknown_message] [info] some text that should be stored as content in the sql column'
+    message = MessageFactory.create_message(line_unknown)
+
+    # print out the type of message
+    print(type(message))
+
+    assert isinstance(message, UnknownMessage)
+
+    assert message.log_timestamp == "2023-07-20 08:41:38.398"
+    assert message.log_process == "unknown_message"
+    assert message.log_level == "info"
+    assert message.content == "some text that should be stored as content in the sql column"

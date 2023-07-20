@@ -1,5 +1,5 @@
 # file: message_factory.py
-from src.message_parsers import BlockprocessorParser, NetworkParser, NodeParser, ActiveTransactionsParser
+from src.message_parsers import *
 import re
 
 
@@ -8,8 +8,10 @@ class MessageFactory:
         'network': NetworkParser,
         'blockprocessor': BlockprocessorParser,
         'node': NodeParser,
-        'active_transactions': ActiveTransactionsParser
-        # add more parsers here
+        'active_transactions': ActiveTransactionsParser,
+        'confirmation_solicitor': ConfirmationSolicitorParser,
+        'election': ElectionParser,
+        'unknown': UnknownParser,
     }
 
     @staticmethod
@@ -26,10 +28,10 @@ class MessageFactory:
         log_sources = '|'.join(MessageFactory.PARSERS.keys())
         log_source_match = re.search(r'\[(' + log_sources + ')]', line)
 
-        if not log_source_match:
-            raise ValueError("No log source found. Wrong log format")
+        #default to UnknownParser if no other Parser was found
+        log_source = log_source_match.group(
+            1) if log_source_match else 'unknown'
 
-        log_source = log_source_match.group(1)
         parser = MessageFactory.get_parser(log_source)
         return parser.parse_message(line,
                                     filename)  # pass filename to parse_message
