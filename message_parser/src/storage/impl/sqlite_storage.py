@@ -54,6 +54,8 @@ class SQLiteStorage:
             return ASCPullReqMessageMapper(message)
         elif isinstance(message, NetworkMessage):
             return NetworkMessageMapper(message)
+        elif isinstance(message, UnknownMessage):
+            return UnknownMessageMapper(message)
         else:
             return MessageMapper(message)
 

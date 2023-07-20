@@ -449,3 +449,65 @@ def store_generate_vote_message_combined(line, sql_class_name):
     # Iterate over common properties and assert their correctness
     for property in common_properties:
         assert stored_message_dict[property] == getattr(message, property)
+
+
+def test_store_unknown_message_with_event():
+    line_unknown = '[2023-07-20 08:41:38.398] [unknown_message] [trace] "unkown_event" some text that should be stored as content in the sql column'
+
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line_unknown)
+
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM unknownmessage;")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'content'
+    ]
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        assert stored_message_dict[property] == getattr(message, property)
+
+
+def test_store_unknown_message_without_event():
+    line_unknown = '[2023-07-20 08:41:38.398] [unknown_message] [info] some text that should be stored as content in the sql column'
+
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line_unknown)
+
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM unknownmessage;")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'content'
+    ]
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        assert stored_message_dict[property] == getattr(message, property)

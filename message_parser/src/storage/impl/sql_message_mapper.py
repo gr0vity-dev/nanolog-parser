@@ -412,3 +412,16 @@ class GenerateVoteFinalMessageMapper(MessageMapper):
     def get_table_schema(self):
         return super().get_table_schema() + [('root', 'text'),
                                              ('hash', 'text')]
+
+
+class UnknownMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'content': self.message.content,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('content', 'text')]
