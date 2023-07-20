@@ -367,3 +367,18 @@ class ActiveStoppedMessageMapper(MessageMapper):
 
         def get_related_entities(self):
             return []
+
+
+class BroadcastMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'channel': self.message.channel,
+            'hash': self.message.hash,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('channel', 'text'),
+                                             ('hash', 'text')]

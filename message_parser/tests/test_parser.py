@@ -310,3 +310,19 @@ def test_active_transactions_message_parsing():
     ]
     assert message_stopped.behaviour == 'normal'
     assert message_stopped.confirmed == True
+
+
+def test_confirmation_solicitor_broadcast_message_parsing():
+    line_broadcast = '[2023-07-20 08:37:49.297] [confirmation_solicitor] [trace] "broadcast" channel="[::ffff:192.168.160.6]:17075", hash="F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D"'
+
+    message_broadcast = BroadcastMessage().parse(line_broadcast)
+
+    # Assertions for base attributes
+    assert message_broadcast.log_timestamp == '2023-07-20 08:37:49.297'
+    assert message_broadcast.log_process == 'confirmation_solicitor'
+    assert message_broadcast.log_level == 'trace'
+    assert message_broadcast.log_event == 'broadcast'
+
+    # Assertions for specific fields
+    assert message_broadcast.channel == '[::ffff:192.168.160.6]:17075'
+    assert message_broadcast.hash == 'F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D'

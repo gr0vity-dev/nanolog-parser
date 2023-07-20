@@ -372,3 +372,38 @@ def store_active_transactions_message_combined(line, sql_class_name):
     # Iterate over common properties and assert their correctness
     for property in common_properties:
         assert stored_message_dict[property] == getattr(message, property)
+
+
+def test_store_broadcast_message():
+    line_broadcast = '[2023-07-20 08:37:49.297] [confirmation_solicitor] [trace] "broadcast" channel="[::ffff:192.168.160.6]:17075", hash="F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D"'
+    store_broadcast_message_combined(line_broadcast, 'broadcastmessage')
+
+
+def store_broadcast_message_combined(line, sql_class_name):
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line)
+
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM {sql_class_name.lower()};")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'channel',
+        'hash'
+    ]
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        assert stored_message_dict[property] == getattr(message, property)
