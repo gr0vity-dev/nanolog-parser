@@ -407,3 +407,45 @@ def store_broadcast_message_combined(line, sql_class_name):
     # Iterate over common properties and assert their correctness
     for property in common_properties:
         assert stored_message_dict[property] == getattr(message, property)
+
+
+def test_store_generate_vote_normal_message():
+    line_normal = '[2023-07-20 08:20:51.401] [election] [trace] "generate_vote_normal" root="686C685B1CEF83843D6A5AD85EE685A6F6C394CB7C2E3B2B611CFA2B4DA566A3", hash="3A8867A4E61F181FC3B43B8E6BE5CBC860E35E6C7D3204EBB3557B2B6A514423"'
+    store_generate_vote_message_combined(line_normal,
+                                         'generatevotenormalmessage')
+
+
+def test_store_generate_vote_final_message():
+    line_final = '[2023-07-20 08:41:38.398] [election] [trace] "generate_vote_final" root="355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE", hash="D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"'
+    store_generate_vote_message_combined(line_final,
+                                         'generatevotefinalmessage')
+
+
+def store_generate_vote_message_combined(line, sql_class_name):
+    # Create a Message instance and parse the line using MessageFactory
+    message = MessageFactory.create_message(line)
+
+    # Create a SQLiteStorage instance
+    storage = SQLiteStorage(':memory:')
+
+    # Store the message
+    storage.store_message(message)
+
+    # Retrieve the stored message
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM {sql_class_name.lower()};")
+    stored_message = cursor.fetchone()
+
+    # Check if the stored data is correct
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+
+    # Create list of common properties
+    common_properties = [
+        'log_timestamp', 'log_process', 'log_level', 'log_event', 'root',
+        'hash'
+    ]
+
+    # Iterate over common properties and assert their correctness
+    for property in common_properties:
+        assert stored_message_dict[property] == getattr(message, property)

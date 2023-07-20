@@ -382,3 +382,33 @@ class BroadcastMessageMapper(MessageMapper):
     def get_table_schema(self):
         return super().get_table_schema() + [('channel', 'text'),
                                              ('hash', 'text')]
+
+
+class GenerateVoteNormalMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root': self.message.root,
+            'hash': self.message.hash,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('root', 'text'),
+                                             ('hash', 'text')]
+
+
+class GenerateVoteFinalMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root': self.message.root,
+            'hash': self.message.hash,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('root', 'text'),
+                                             ('hash', 'text')]

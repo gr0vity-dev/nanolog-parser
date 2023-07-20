@@ -326,3 +326,21 @@ def test_confirmation_solicitor_broadcast_message_parsing():
     # Assertions for specific fields
     assert message_broadcast.channel == '[::ffff:192.168.160.6]:17075'
     assert message_broadcast.hash == 'F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D'
+
+
+def test_parse_generate_vote_normal_message():
+    line_normal = '[2023-07-20 08:20:51.401] [election] [trace] "generate_vote_normal" root="686C685B1CEF83843D6A5AD85EE685A6F6C394CB7C2E3B2B611CFA2B4DA566A3", hash="3A8867A4E61F181FC3B43B8E6BE5CBC860E35E6C7D3204EBB3557B2B6A514423"'
+    message = GenerateVoteNormalMessage().parse(line_normal)
+
+    assert isinstance(message, GenerateVoteNormalMessage)
+    assert message.root == "686C685B1CEF83843D6A5AD85EE685A6F6C394CB7C2E3B2B611CFA2B4DA566A3"
+    assert message.hash == "3A8867A4E61F181FC3B43B8E6BE5CBC860E35E6C7D3204EBB3557B2B6A514423"
+
+
+def test_parse_generate_vote_final_message():
+    line_final = '[2023-07-20 08:41:38.398] [election] [trace] "generate_vote_final" root="355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE", hash="D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"'
+    message = GenerateVoteFinalMessage().parse(line_final)
+
+    assert isinstance(message, GenerateVoteFinalMessage)
+    assert message.root == "355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE"
+    assert message.hash == "D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"

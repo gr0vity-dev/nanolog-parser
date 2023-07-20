@@ -30,6 +30,10 @@ class SQLiteStorage:
             return BlockProcessorMessageMapper(message)
         elif isinstance(message, BroadcastMessage):
             return BroadcastMessageMapper(message)
+        elif isinstance(message, GenerateVoteNormalMessage):
+            return GenerateVoteNormalMessageMapper(message)
+        elif isinstance(message, GenerateVoteFinalMessage):
+            return GenerateVoteFinalMessageMapper(message)
         elif isinstance(message, NodeProcessConfirmedMessage):
             return NodeProcessConfirmedMessageMapper(message)
         elif isinstance(message, ActiveStartedMessage):
