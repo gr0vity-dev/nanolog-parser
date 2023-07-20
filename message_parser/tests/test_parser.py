@@ -230,13 +230,13 @@ def test_blockprocessor_message_identification():
     # Test that a blockprocessor log line is correctly identified
     line = '[2023-07-15 14:19:48.287] [blockprocessor] [trace] "block_processed" result="gap_previous", block={ type="state", hash="160F1EF61CFC73D2DBF2B249AA38B9965BF441EEF4312E9A89BDB58A22CF32FE", account="EBB66C545B0ED5F248256E281E13B09829518435C4C05E705BB70F2DF625E060", previous="9C490F4525EA5E6EAA4E76869B7073D5BD452D11B2CEB6CC34353856519D2075", representative="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", balance="00000000000000000000000000000000", link="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", signature="E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D", work=10530317739669255306 }, forced=false'
     message = MessageFactory.create_message(line)
-    assert isinstance(message, BlockProcessorMessage)
+    assert isinstance(message, BlockProcessedMessage)
 
 
 def test_blockprocessor_message_parsing():
     # Test that a blockprocessor message is correctly parsed
     line = '[2023-07-15 14:19:48.287] [blockprocessor] [trace] "block_processed" result="gap_previous", block={ type="state", hash="160F1EF61CFC73D2DBF2B249AA38B9965BF441EEF4312E9A89BDB58A22CF32FE", account="EBB66C545B0ED5F248256E281E13B09829518435C4C05E705BB70F2DF625E060", previous="9C490F4525EA5E6EAA4E76869B7073D5BD452D11B2CEB6CC34353856519D2075", representative="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", balance="00000000000000000000000000000000", link="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", signature="E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D", work=10530317739669255306 }, forced=false'
-    message = BlockProcessorMessage().parse(line)
+    message = BlockProcessedMessage().parse(line)
 
     # Assertions for base attributes
     assert message.log_timestamp == '2023-07-15 14:19:48.287'
@@ -390,12 +390,29 @@ def test_unknown_parser():
     line_unknown = '[2023-07-20 08:41:38.398] [unknown_message] [info] some text that should be stored as content in the sql column'
     message = MessageFactory.create_message(line_unknown)
 
-    # print out the type of message
-    print(type(message))
-
     assert isinstance(message, UnknownMessage)
 
     assert message.log_timestamp == "2023-07-20 08:41:38.398"
     assert message.log_process == "unknown_message"
     assert message.log_level == "info"
     assert message.content == "some text that should be stored as content in the sql column"
+
+
+def test_processed_blocks_message():
+    line = "[2023-07-20 08:41:11.799] [blockprocessor] [debug] Processed 159 blocks (0 forced) in 501milliseconds"
+    message = MessageFactory.create_message(line)
+
+    assert isinstance(message, ProcessedBlocksMessage)
+    assert message.processed_blocks == 159
+    assert message.forced_blocks == 0
+    assert message.process_time == 501
+
+
+def test_blocks_in_queue_message():
+    line = "[2023-07-20 08:41:12.300] [blockprocessor] [debug] 101 blocks [+ 0 state blocks] [+ 0 forced] in processing queue"
+    message = MessageFactory.create_message(line)
+
+    assert isinstance(message, BlocksInQueueMessage)
+    assert message.blocks_in_queue == 101
+    assert message.state_blocks == 0
+    assert message.forced_blocks == 0

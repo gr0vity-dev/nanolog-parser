@@ -242,7 +242,7 @@ class ASCPullReqMessageMapper(NetworkMessageMapper):
                                              ('count', 'integer')]
 
 
-class BlockProcessorMessageMapper(MessageMapper):
+class BlockProcessedMessageMapper(MessageMapper):
 
     def to_dict(self):
         data = super().to_dict()
@@ -273,6 +273,40 @@ class BlockProcessorMessageMapper(MessageMapper):
                                              ('signature', 'text'),
                                              ('work', 'text'),
                                              ('forced', 'bool')]
+
+
+class ProcessedBlocksMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'processed_blocks': self.message.processed_blocks,
+            'forced_blocks': self.message.forced_blocks,
+            'process_time': self.message.process_time
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('processed_blocks', 'int'),
+                                             ('forced_blocks', 'int'),
+                                             ('process_time', 'int')]
+
+
+class BlocksInQueueMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'blocks_in_queue': self.message.blocks_in_queue,
+            'state_blocks': self.message.state_blocks,
+            'forced_blocks': self.message.forced_blocks
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('blocks_in_queue', 'int'),
+                                             ('state_blocks', 'int'),
+                                             ('forced_blocks', 'int')]
 
 
 class NodeProcessConfirmedMessageMapper(MessageMapper):

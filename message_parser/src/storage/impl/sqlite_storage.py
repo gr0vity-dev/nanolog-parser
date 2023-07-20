@@ -26,8 +26,12 @@ class SQLiteStorage:
     @staticmethod
     def get_mapper_for_message(message):
 
-        if isinstance(message, BlockProcessorMessage):
-            return BlockProcessorMessageMapper(message)
+        if isinstance(message, BlockProcessedMessage):
+            return BlockProcessedMessageMapper(message)
+        elif isinstance(message, ProcessedBlocksMessage):
+            return ProcessedBlocksMessageMapper(message)
+        elif isinstance(message, BlocksInQueueMessage):
+            return BlocksInQueueMessageMapper(message)
         elif isinstance(message, BroadcastMessage):
             return BroadcastMessageMapper(message)
         elif isinstance(message, GenerateVoteNormalMessage):

@@ -21,6 +21,15 @@ def fix_json_keys(string):
 
 class BlockProcessorMessage(Message, BaseAttributesMixin):
 
+    def __init__(self, filename=None):
+        super().__init__(filename)
+
+    def parse_specific(self, line):
+        raise NotImplementedError()
+
+
+class BlockProcessedMessage(BlockProcessorMessage):
+
     def parse_specific(self, line):
         self.result = self.extract_result(line)
         self.forced = self.extract_forced(line)
@@ -48,3 +57,49 @@ class BlockProcessorMessage(Message, BaseAttributesMixin):
         match = re.search(r'forced=(\w+)', line)
         if match:
             return match.group(1) == 'true'
+
+
+class ProcessedBlocksMessage(BlockProcessorMessage):
+
+    def parse_specific(self, line):
+        self.processed_blocks = self.extract_processed_blocks(line)
+        self.forced_blocks = self.extract_forced_blocks(line)
+        self.process_time = self.extract_process_time(line)
+
+    def extract_processed_blocks(self, line):
+        match = re.search(r'Processed (\d+) blocks', line)
+        if match:
+            return int(match.group(1))
+
+    def extract_forced_blocks(self, line):
+        match = re.search(r'\((\d+) forced\)', line)
+        if match:
+            return int(match.group(1))
+
+    def extract_process_time(self, line):
+        match = re.search(r'in (\d+)milliseconds', line)
+        if match:
+            return int(match.group(1))
+
+
+class BlocksInQueueMessage(BlockProcessorMessage):
+
+    def parse_specific(self, line):
+        self.blocks_in_queue = self.extract_blocks_in_queue(line)
+        self.state_blocks = self.extract_state_blocks(line)
+        self.forced_blocks = self.extract_forced_blocks(line)
+
+    def extract_blocks_in_queue(self, line):
+        match = re.search(r'(\d+) blocks', line)
+        if match:
+            return int(match.group(1))
+
+    def extract_state_blocks(self, line):
+        match = re.search(r'\[\+ (\d+) state blocks\]', line)
+        if match:
+            return int(match.group(1))
+
+    def extract_forced_blocks(self, line):
+        match = re.search(r'\[\+ (\d+) forced\]', line)
+        if match:
+            return int(match.group(1))
