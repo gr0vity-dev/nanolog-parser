@@ -416,3 +416,11 @@ def test_blocks_in_queue_message():
     assert message.blocks_in_queue == 101
     assert message.state_blocks == 0
     assert message.forced_blocks == 0
+
+
+def test_blockprocessor_message_without_parser():
+    line = "[2023-07-20 08:41:12.300] [blockprocessor] [info] Message_without_a_specific_parser"
+    message = MessageFactory.create_message(line)
+
+    assert isinstance(message, BlockProcessorMessage)
+    assert message.content == "Message_without_a_specific_parser"

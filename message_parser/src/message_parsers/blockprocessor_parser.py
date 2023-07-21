@@ -9,21 +9,14 @@ class BlockprocessorParser(BaseParser):
         'block_processed': BlockProcessedMessage,
         'processed_blocks': ProcessedBlocksMessage,
         'blocks_in_queue': BlocksInQueueMessage,
+        'default': BlockProcessorMessage
     }
 
     def get_message_type_regex(self):
         return r'\[(blockprocessor)\] \[\w+\]'
 
     def parse_message(self, line, filename=None):
-        regex = self.get_message_type_regex()
-        message_type_match = re.search(regex, line)
-
-        # if not message_type_match:
-        #     raise ValueError(f"No message type found. Wrong log format.")
-
-        # determine the message type by matching the regex or any other suitable logic
         message_type = self.determine_message_type(line)
-
         message_class = self.MESSAGE_TYPES.get(message_type)
 
         if message_class is None:
@@ -45,4 +38,4 @@ class BlockprocessorParser(BaseParser):
                 return message_type
 
         # default
-        return "unknown"
+        return "default"
