@@ -1,4 +1,5 @@
 from src.message_factory import MessageFactory
+from src.parsing_utils import ParseException
 
 
 class Parser:
@@ -15,7 +16,8 @@ class Parser:
                         line,
                         filename.replace("node_spd_", "").replace(".log", ""))
                     self.parsed_messages.append(message)
-                except ValueError:
+                except ParseException as exc:
+                    print(exc)
                     self.ignored_lines += 1
 
     def report(self):

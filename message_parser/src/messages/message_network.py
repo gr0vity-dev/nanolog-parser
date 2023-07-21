@@ -19,22 +19,23 @@ def fix_json_keys(string):
     return string
 
 
+def convert_message_to_json(log_message):
+    log_message = extract_message(log_message)
+    message_content = fix_json_keys(log_message)
+    return json.loads(message_content)
+
+
 class NetworkMessage(Message, BaseAttributesMixin, HeaderMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def parse(self, line):
-        self.parse_base_attributes(line)
-        message_text = extract_message(line)
-        message_content = fix_json_keys(message_text)
-        message_dict = json.loads(message_content)
+    def parse_common(self, line):  # Overridden method
+        message_dict = convert_message_to_json(line)
         self.parse_header(message_dict['header'])
-        self.parse_specific(message_dict)  # Step deferred to subclass
-        return self
 
-    def parse_specific(self, message_dict):
-        pass  # Can be overridden by subclasses
+    def parse_specific(self, message_dict):  # Overridden method
+        self.content = message_dict
 
 
 class ConfirmAckMessage(NetworkMessage):
@@ -47,9 +48,8 @@ class ConfirmAckMessage(NetworkMessage):
         self.hash_count = None
         self.vote_type = None
 
-    def parse_specific(self,
-                       message_dict):  # Overriding method from NetworkMessage
-        # Parse the vote details
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.account = message_dict['vote']['account']
         self.timestamp = self.normalize_timestamp(
             message_dict['vote']['timestamp'])
@@ -65,9 +65,8 @@ class ConfirmReqMessage(NetworkMessage):
         self.roots = []
         self.root_count = None
 
-    def parse_specific(self,
-                       message_dict):  # Overriding method from NetworkMessage
-        # Parse the roots
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.roots = message_dict['roots']
         self.root_count = len(self.roots)
 
@@ -76,18 +75,9 @@ class PublishMessage(NetworkMessage):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.block_type = None
-        self.hash = None
-        self.account = None
-        self.previous = None
-        self.representative = None
-        self.balance = None
-        self.link = None
-        self.signature = None
-        self.work = None
 
-    def parse_specific(self, message_dict):
-        # Parse the block details
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.block_type = message_dict['block']['type']
         self.hash = message_dict['block']['hash']
         self.account = message_dict['block']['account']
@@ -105,8 +95,8 @@ class KeepAliveMessage(NetworkMessage):
         super().__init__(*args, **kwargs)
         self.peers = []
 
-    def parse_specific(self, message_dict):
-        # Add the parsed peers list
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.peers = message_dict["peers"]
 
 
@@ -114,11 +104,10 @@ class AscPullAckMessage(NetworkMessage):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = None
         self.blocks = []
 
-    def parse_specific(self, message_dict):
-        # Parse the id
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.id = str(message_dict['id'])
 
         # Parse the blocks
@@ -141,13 +130,9 @@ class AscPullReqMessage(NetworkMessage):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = None
-        self.start = None
-        self.start_type = None
-        self.count = None
 
-    def parse_specific(self, message_dict):
-        # Parse the additional fields
+    def parse_specific(self, line):
+        message_dict = convert_message_to_json(line)
         self.id = str(message_dict['id'])
         self.start = message_dict['start']
         self.start_type = message_dict['start_type']

@@ -12,6 +12,9 @@ class UnknownMessage(Message):
         self.parse_specific(self.remainder)
         return self
 
-    def parse_specific(self, line):
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
         # Extract content after the log_event
-        self.content = line
+        self.content = remainder

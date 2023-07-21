@@ -19,25 +19,19 @@ def fix_json_keys(string):
     return string
 
 
-class NodeProcessConfirmedMessage(Message, BaseAttributesMixin):
+class NodeMessage(Message):
+
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
+        pass
+
+
+class NodeProcessConfirmedMessage(NodeMessage):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.block_type = None
-        self.hash = None
-        self.account = None
-        self.previous = None
-        self.representative = None
-        self.balance = None
-        self.link = None
-        self.signature = None
-        self.work = None
-        self.sideband = None
-
-    def parse(self, line):
-        self.parse_base_attributes(line)
-        self.parse_specific(line)
-        return self
 
     def parse_specific(self, line):
         block_text = extract_block(line)

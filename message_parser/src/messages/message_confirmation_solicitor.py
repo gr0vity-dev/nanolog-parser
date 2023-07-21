@@ -2,7 +2,16 @@ from .base_message import Message
 import re
 
 
-class BroadcastMessage(Message):
+class ConfirmationSolicitorMessage(Message):
+
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
+        pass
+
+
+class BroadcastMessage(ConfirmationSolicitorMessage):
 
     def parse_specific(self, line):
         regex = r'channel="(?P<channel>[^"]+)", hash="(?P<hash>[^"]+)"'

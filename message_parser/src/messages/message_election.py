@@ -3,7 +3,16 @@ from .base_message import Message
 import re
 
 
-class GenerateVoteNormalMessage(Message):
+class ElectionMessage(Message):
+
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
+        pass
+
+
+class GenerateVoteNormalMessage(ElectionMessage):
 
     def parse_specific(self, line):
         regex = r'root="(?P<root>[^"]+)", hash="(?P<hash>[^"]+)"'
@@ -14,7 +23,7 @@ class GenerateVoteNormalMessage(Message):
             self.hash = match.group('hash')
 
 
-class GenerateVoteFinalMessage(Message):
+class GenerateVoteFinalMessage(ElectionMessage):
 
     def parse_specific(self, line):
         regex = r'root="(?P<root>[^"]+)", hash="(?P<hash>[^"]+)"'

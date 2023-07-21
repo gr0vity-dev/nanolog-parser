@@ -1,6 +1,8 @@
+import pytest
 import tempfile
 from src.parser import Parser, MessageFactory
 from src.messages import *
+from src.parsing_utils import ParseException
 import src.message_parsers
 from src.message_parsers.base_parser import BaseParser
 
@@ -199,6 +201,12 @@ def test_asc_pull_ack_message():
     assert message.blocks[0][
         'hash'] == "A14902C8746C2098DEE0B537D28E9ACC57968124A68DA4C2BC642EBDDB201740"
     # Continue with other assertions for block data
+
+
+def test_asc_pull_ack_parse_error():
+    line = '[2023-07-20 08:39:18.699] [network] [trace] "message_received" message={ header={ type="asc_pull_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=218 }, type="blocks", id=13826308554500678838, blocks=[ { type="state", hash="927ED91C0FB6219533C16D0FDC72054EF289B7E9310BAFDC915A45AD107D9011", account="139E91FF89FD3DFB56E484678C6F48B6D6CA9D646BCC7477067D0737DC5FA5C1", previous="0000000000000000000000000000000000000000000000000000000000000000", representative="FEEEC71E328CFC40E02F477CCE837A388CFCBEE7C08FFEAA6DEF9512C73501D0"'
+    with pytest.raises(ParseException):
+        message = AscPullAckMessage().parse(line)
 
 
 def test_asc_pull_req_message():

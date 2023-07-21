@@ -2,11 +2,20 @@ from .base_message import Message
 import re
 
 
-class ActiveStartedMessage(Message):
+class ActiveTransactionsMessage(Message):
 
-    def parse_specific(self, line):
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
+        pass
+
+
+class ActiveStartedMessage(ActiveTransactionsMessage):
+
+    def parse_specific(self, remainder):
         regex = r'root="(?P<root>[^"]+)", hash="(?P<hash>[^"]+)", behaviour="(?P<behaviour>[^"]+)"'
-        match = re.search(regex, line)
+        match = re.search(regex, remainder)
 
         if match:
             self.root = match.group('root')
@@ -14,11 +23,11 @@ class ActiveStartedMessage(Message):
             self.behaviour = match.group('behaviour')
 
 
-class ActiveStoppedMessage(Message):
+class ActiveStoppedMessage(ActiveTransactionsMessage):
 
-    def parse_specific(self, line):
+    def parse_specific(self, remainder):
         regex = r'root="(?P<root>[^"]+)", hashes=\[(?P<hashes>[^]]+)\], behaviour="(?P<behaviour>[^"]+)", confirmed=(?P<confirmed>\w+)'
-        match = re.search(regex, line)
+        match = re.search(regex, remainder)
 
         if match:
             self.root = match.group('root')

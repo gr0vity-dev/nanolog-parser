@@ -24,8 +24,12 @@ class BlockProcessorMessage(Message, BaseAttributesMixin):
     def __init__(self, filename=None):
         super().__init__(filename)
 
-    def parse_specific(self, line):
-        raise NotImplementedError()
+    def parse_common(self, remainder):
+        pass
+
+    def parse_specific(self, remainder):
+        # Extract remainder
+        self.content = remainder
 
 
 class BlockProcessedMessage(BlockProcessorMessage):
