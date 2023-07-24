@@ -459,3 +459,50 @@ class UnknownMessageMapper(MessageMapper):
 
     def get_table_schema(self):
         return super().get_table_schema() + [('content', 'text')]
+
+
+class FlushMessageMapper(MessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root_count': self.message.confirm_req.root_count,
+            'channel': self.message.channel,
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [
+            ('channel', 'text'),
+            ('root_count', 'integer'),
+        ]
+
+    def get_related_entities(self):
+        return [({
+            'root': root['root'],
+            'hash': root['hash']
+        }, self.FlushRootsMapper(root))
+                for root in self.message.confirm_req.roots]
+
+    @property
+    def parent_entity_name(self):
+        return 'flushmessage'
+
+    class FlushRootsMapper(BaseMapper):
+
+        def __init__(self, root):
+            self.root = root
+
+        def to_dict(self):
+            return self.root
+
+        def get_table_name(self):
+            return 'flushmessage_roots'
+
+        def get_table_schema(self):
+            return [('id', 'integer primary key'),
+                    ('flushmessage_id', 'integer'), ('root', 'text'),
+                    ('hash', 'text')]
+
+        def get_related_entities(self):
+            return []

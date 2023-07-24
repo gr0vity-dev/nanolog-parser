@@ -13,8 +13,8 @@ class Message(ABC, BaseAttributesMixin):
         self.class_name = self.__class__.__name__
         self.log_file = src_file
 
-    def parse(self, line):  # Template Method
-        self.parse_base_attributes(line)
+    def parse(self, line, base_attributes=True):  # Template Method
+        self.parse_base_attributes(line, base_attributes)
         self._parse_common(self.remainder)
         self._parse_specific(self.remainder)
         return self

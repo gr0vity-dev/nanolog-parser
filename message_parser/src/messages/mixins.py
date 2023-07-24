@@ -3,7 +3,12 @@ import re
 
 class BaseAttributesMixin:
 
-    def parse_base_attributes(self, line):
+    def parse_base_attributes(self, line, base_attributes=True):
+
+        if not base_attributes:
+            self.remainder = line
+            return self
+
         # define the pattern for the basic attributes
         pattern = r'\[(.+?)\] \[(.+?)\] \[(.+?)\]'
         base_attributes_match = re.match(pattern, line)

@@ -34,6 +34,9 @@ class SQLiteStorage:
             return BlocksInQueueMessageMapper(message)
         elif isinstance(message, BroadcastMessage):
             return BroadcastMessageMapper(message)
+        elif isinstance(message, FlushMessage):
+            assert isinstance(message.confirm_req, ConfirmReqMessage)
+            return FlushMessageMapper(message)
         elif isinstance(message, GenerateVoteNormalMessage):
             return GenerateVoteNormalMessageMapper(message)
         elif isinstance(message, GenerateVoteFinalMessage):
