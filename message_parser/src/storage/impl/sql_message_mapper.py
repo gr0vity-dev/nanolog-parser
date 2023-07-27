@@ -2,22 +2,99 @@ import json
 from abc import ABC, abstractmethod
 
 
-class BaseMapper(ABC):
+class Relation:
 
-    @abstractmethod
+    def __init__(self, parent_entity_name, message_id, data, table_name):
+        self.hashable_mapper = HashableMapper(data, table_name)
+        self.link_mapper = LinkMapper({
+            'message_type':
+            parent_entity_name,
+            'message_id':
+            message_id,
+            'relation_type':
+            table_name,
+            'relation_id':
+            self.hashable_mapper.to_key(),
+        })
+
+    def get_mappers(self):
+        # Its important to retrun HashableMapper before LinkMapper
+        # as the store_message needs hashable_mapper sql_id to exist
+        # when creating the link_mapper sql entry
+        return [self.hashable_mapper, self.link_mapper]
+
+
+class Relations:
+
+    def __init__(self,
+                 message_mapper,
+                 data_list,
+                 table_name,
+                 key_for_string=None):
+        self.message_mapper = message_mapper
+        self.relations = []
+        for data in data_list:
+            if isinstance(data, dict):
+                self.relations.append(
+                    Relation(self.message_mapper.parent_entity_name,
+                             self.message_mapper.sql_id, data, table_name))
+
+            # If the data is a string, we convert it to a dictionary before creating a Relation object
+            # The key for this dictionary is provided by the key_for_string argument.
+            # We do this because the Relation object expects its data argument to be a dictionary, not a string.
+            elif isinstance(data, str) and key_for_string is not None:
+                self.relations.append(
+                    Relation(self.message_mapper.parent_entity_name,
+                             self.message_mapper.sql_id,
+                             {key_for_string: data}, table_name))
+            else:
+                raise TypeError(
+                    "Data list must contain either dictionaries or strings (with key_for_string provided)"
+                )
+
+    # This function simply collates all the mappers from all the Relation objects
+    def get_mappers(self):
+        return [
+            mapper for relation in self.relations
+            for mapper in relation.get_mappers()
+        ]
+
+
+class BaseMapper:
+
+    def __init__(self, data):
+        self.data = data
+        self.sql_id = None
+
     def get_table_name(self):
-        pass
+        raise NotImplementedError()
 
-    @abstractmethod
-    def to_dict(self):
-        pass
-
-    @abstractmethod
     def get_table_schema(self):
-        pass
+        raise NotImplementedError()
 
-    @abstractmethod
+    def to_dict(self):
+        raise NotImplementedError()
+
+    def to_key(self):
+        #return "_".join(self.data.values())
+        return "_".join(list(self.to_dict().values()))
+
+    def handle_table(self):
+        return self.get_table_name(), self.get_table_schema(), self.to_dict()
+
     def get_related_entities(self):
+        return []
+
+    def is_dependent(self):
+        return False
+
+    def convert_related_ids(self, id_mappings):
+        """
+        Used in LinkMapper only. 
+        Takes a dictionary where keys are raw IDs (returned by to_key()) and values are the real
+        IDs (integers) as used in the database. This method can be overridden by subclasses
+        if there's a need to convert some field values before saving them.
+        """
         pass
 
 
@@ -50,6 +127,58 @@ class MessageMapper(BaseMapper):
             ('log_event', 'text'),
             ('log_file', 'text'),
         ]
+
+
+class LinkMapper(BaseMapper):
+
+    def __init__(self, data):
+        self.data = data
+
+    def to_dict(self):
+        return self.data
+
+    def get_table_name(self):
+        return 'message_links'
+
+    def get_table_schema(self):
+        return [('message_type', 'text'), ('message_id', 'integer'),
+                ('relation_type', 'text'), ('relation_id', 'integer')]
+
+    def get_related_entities(self):
+        return []
+
+    def is_dependent(self):
+        return True
+
+    def convert_related_ids(self, id_mappings):
+        self.data['relation_id'] = id_mappings.get(self.data['relation_id'],
+                                                   self.data['relation_id'])
+        return self.to_dict()
+
+
+class HashableMapper(BaseMapper):
+
+    def __init__(self, data, table_name):
+        self.data = data
+        self.table_name = table_name
+
+    # def to_key(self):
+    #     return "_".join(self.data.values())
+
+    def to_dict(self):
+        return self.data
+
+    def get_table_name(self):
+        return self.table_name
+
+    def get_table_schema(self):
+        schema = [('id', 'integer primary key')]
+        for key in self.data.keys():
+            schema.append((key, 'text'))
+        return schema
+
+    def get_related_entities(self):
+        return []
 
 
 class NetworkMessageMapper(MessageMapper):
@@ -100,31 +229,12 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
         ]
 
     def get_related_entities(self):
-        return [({
-            'hash': hash_
-        }, self.ConfirmAckHashMapper(hash_)) for hash_ in self.message.hashes]
+        relations = Relations(self, self.message.hashes, 'hashes', 'hash')
+        return relations.get_mappers()
 
     @property
     def parent_entity_name(self):
         return 'confirmackmessage'
-
-    class ConfirmAckHashMapper(BaseMapper):
-
-        def __init__(self, hash_):
-            self.hash = hash_
-
-        def to_dict(self):
-            return {'hash': self.hash}
-
-        def get_table_name(self):
-            return 'confirmackmessage_hashes'
-
-        def get_table_schema(self):
-            return [('id', 'integer primary key'),
-                    ('confirmackmessage_id', 'integer'), ('hash', 'text')]
-
-        def get_related_entities(self):
-            return []
 
 
 class ConfirmReqMessageMapper(NetworkMessageMapper):
@@ -142,33 +252,12 @@ class ConfirmReqMessageMapper(NetworkMessageMapper):
         ]
 
     def get_related_entities(self):
-        return [({
-            'root': root['root'],
-            'hash': root['hash']
-        }, self.ConfirmReqRootMapper(root)) for root in self.message.roots]
+        relations = Relations(self, self.message.roots, 'roots')
+        return relations.get_mappers()
 
     @property
     def parent_entity_name(self):
         return 'confirmreqmessage'
-
-    class ConfirmReqRootMapper(BaseMapper):
-
-        def __init__(self, root):
-            self.root = root
-
-        def to_dict(self):
-            return self.root
-
-        def get_table_name(self):
-            return 'confirmreqmessage_roots'
-
-        def get_table_schema(self):
-            return [('id', 'integer primary key'),
-                    ('confirmreqmessage_id', 'integer'), ('root', 'text'),
-                    ('hash', 'text')]
-
-        def get_related_entities(self):
-            return []
 
 
 class PublishMessageMapper(NetworkMessageMapper):
@@ -375,32 +464,12 @@ class ActiveStoppedMessageMapper(MessageMapper):
                                              ('confirmed', 'boolean')]
 
     def get_related_entities(self):
-        return [({
-            'hash': hash_
-        }, self.ActiveStoppedHashMapper(hash_))
-                for hash_ in self.message.hashes]
+        relations = Relations(self, self.message.hashes, 'hashes', 'hash')
+        return relations.get_mappers()
 
     @property
     def parent_entity_name(self):
         return 'activestoppedmessage'
-
-    class ActiveStoppedHashMapper(BaseMapper):
-
-        def __init__(self, hash_):
-            self.hash = hash_
-
-        def to_dict(self):
-            return {'hash': self.hash}
-
-        def get_table_name(self):
-            return 'activestoppedmessage_hashes'
-
-        def get_table_schema(self):
-            return [('id', 'integer primary key'),
-                    ('activestoppedmessage_id', 'integer'), ('hash', 'text')]
-
-        def get_related_entities(self):
-            return []
 
 
 class BroadcastMessageMapper(MessageMapper):
@@ -463,6 +532,10 @@ class UnknownMessageMapper(MessageMapper):
 
 class FlushMessageMapper(MessageMapper):
 
+    @property
+    def parent_entity_name(self):
+        return 'flushmessage'
+
     def to_dict(self):
         data = super().to_dict()
         data.update({
@@ -478,31 +551,5 @@ class FlushMessageMapper(MessageMapper):
         ]
 
     def get_related_entities(self):
-        return [({
-            'root': root['root'],
-            'hash': root['hash']
-        }, self.FlushRootsMapper(root))
-                for root in self.message.confirm_req.roots]
-
-    @property
-    def parent_entity_name(self):
-        return 'flushmessage'
-
-    class FlushRootsMapper(BaseMapper):
-
-        def __init__(self, root):
-            self.root = root
-
-        def to_dict(self):
-            return self.root
-
-        def get_table_name(self):
-            return 'flushmessage_roots'
-
-        def get_table_schema(self):
-            return [('id', 'integer primary key'),
-                    ('flushmessage_id', 'integer'), ('root', 'text'),
-                    ('hash', 'text')]
-
-        def get_related_entities(self):
-            return []
+        relations = Relations(self, self.message.confirm_req.roots, 'roots')
+        return relations.get_mappers()

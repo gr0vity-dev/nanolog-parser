@@ -7,74 +7,80 @@ class SQLiteStorage:
 
     def __init__(self, db_name):
         self.repository = SQLiteRepository(db_name)
+        base_mappers = {
+            'HashableMapper': HashableMapper,
+            'LinkMapper': LinkMapper
+        }
+        self.mapper_registry = {
+            **base_mappers,
+            'BlockProcessedMessage': BlockProcessedMessageMapper,
+            'ProcessedBlocksMessage': ProcessedBlocksMessageMapper,
+            'BlocksInQueueMessage': BlocksInQueueMessageMapper,
+            'BroadcastMessage': BroadcastMessageMapper,
+            'FlushMessage':
+            FlushMessageMapper,  # note: relies on ConfirmReqMessage being present
+            'GenerateVoteNormalMessage': GenerateVoteNormalMessageMapper,
+            'GenerateVoteFinalMessage': GenerateVoteFinalMessageMapper,
+            'NodeProcessConfirmedMessage': NodeProcessConfirmedMessageMapper,
+            'ActiveStartedMessage': ActiveStartedMessageMapper,
+            'ActiveStoppedMessage': ActiveStoppedMessageMapper,
+            'ConfirmAckMessage': ConfirmAckMessageMapper,
+            'ConfirmReqMessage': ConfirmReqMessageMapper,
+            'PublishMessage': PublishMessageMapper,
+            'KeepAliveMessage': KeepAliveMessageMapper,
+            'AscPullAckMessage': ASCPullAckMessageMapper,
+            'AscPullReqMessage': ASCPullReqMessageMapper,
+            'NetworkMessage': NetworkMessageMapper,
+            'UnknownMessage': UnknownMessageMapper,
+            # ... add any other mappings here ...
+        }
+
+    def get_mapper_for_message(self, message):
+        mapper_class = self.mapper_registry.get(
+            type(message).__name__, MessageMapper)
+        return mapper_class(message)
 
     def store_message(self, message):
         mapper = self.get_mapper_for_message(message)
-        table_name = mapper.get_table_name()
-        schema = mapper.get_table_schema()
+        table_name, schema, data = mapper.handle_table()
         self.repository.create_table_if_not_exists(table_name, schema)
-        data = mapper.to_dict()
-        parent_id = self.repository.insert_data(table_name, data)
-        for related_data, related_mapper in mapper.get_related_entities():
-            related_data[mapper.parent_entity_name + '_id'] = parent_id
-            related_table_name = related_mapper.get_table_name()
-            related_schema = related_mapper.get_table_schema()
+        mapper.sql_id = self.repository.insert_data(table_name, data)
+
+        # handle related entities
+        id_mappings = {}
+        for related_mapper in mapper.get_related_entities():
+            related_table_name, related_schema, related_data = related_mapper.handle_table(
+            )
+
             self.repository.create_table_if_not_exists(related_table_name,
                                                        related_schema)
-            self.repository.insert_data(related_table_name, related_data)
+            if related_mapper.is_dependent():
+                mapped_data = related_mapper.convert_related_ids(id_mappings)
+                related_mapper.sql_id = self.repository.insert_data(
+                    related_table_name, mapped_data)
+            else:
+                related_mapper.sql_id = self.repository.insert_data(
+                    related_table_name, related_data)
+                id_mappings[related_mapper.to_key()] = related_mapper.sql_id
 
-    @staticmethod
-    def get_mapper_for_message(message):
-
-        if isinstance(message, BlockProcessedMessage):
-            return BlockProcessedMessageMapper(message)
-        elif isinstance(message, ProcessedBlocksMessage):
-            return ProcessedBlocksMessageMapper(message)
-        elif isinstance(message, BlocksInQueueMessage):
-            return BlocksInQueueMessageMapper(message)
-        elif isinstance(message, BroadcastMessage):
-            return BroadcastMessageMapper(message)
-        elif isinstance(message, FlushMessage):
-            assert isinstance(message.confirm_req, ConfirmReqMessage)
-            return FlushMessageMapper(message)
-        elif isinstance(message, GenerateVoteNormalMessage):
-            return GenerateVoteNormalMessageMapper(message)
-        elif isinstance(message, GenerateVoteFinalMessage):
-            return GenerateVoteFinalMessageMapper(message)
-        elif isinstance(message, NodeProcessConfirmedMessage):
-            return NodeProcessConfirmedMessageMapper(message)
-        elif isinstance(message, ActiveStartedMessage):
-            return ActiveStartedMessageMapper(message)
-        elif isinstance(message, ActiveStoppedMessage):
-            return ActiveStoppedMessageMapper(message)
-        elif isinstance(message, ConfirmAckMessage):
-            return ConfirmAckMessageMapper(message)
-        elif isinstance(message, ConfirmReqMessage):
-            return ConfirmReqMessageMapper(message)
-        elif isinstance(message, PublishMessage):
-            return PublishMessageMapper(message)
-        elif isinstance(message, KeepAliveMessage):
-            return KeepAliveMessageMapper(message)
-        elif isinstance(message, AscPullAckMessage):
-            return ASCPullAckMessageMapper(message)
-        elif isinstance(message, AscPullReqMessage):
-            return ASCPullReqMessageMapper(message)
-        elif isinstance(message, NetworkMessage):
-            return NetworkMessageMapper(message)
-        elif isinstance(message, UnknownMessage):
-            return UnknownMessageMapper(message)
-        else:
-            return MessageMapper(message)
+        return mapper.sql_id
 
 
 class SQLiteRepository:
 
-    def __init__(self, db_name, batch_size=500):  # Add a batch_size parameter
+    def __init__(self, db_name, batch_size=100):  # Add a batch_size parameter
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute("PRAGMA journal_mode=WAL")
         self.batch_size = batch_size
         self.batch_count = 0
+
+    def create_index(self, table_name, column_name):
+        cursor = self.conn.cursor()
+        cursor.execute(
+            f"CREATE INDEX IF NOT EXISTS index_{table_name}_{column_name} ON {table_name}({column_name});"
+        )
+        self.conn.commit()
 
     def create_table_if_not_exists(self, table_name, table_schema):
         query = f"""
