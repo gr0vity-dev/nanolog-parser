@@ -87,26 +87,30 @@ class KeepAliveMessageMapper(NetworkMessageMixin, IMapper):
 
     def to_dict(self):
         data = super().to_dict()
-        data.update({'peers': json.dumps(self.message.peers)})
         return data
 
     def get_table_schema(self):
-        return super().get_table_schema() + [('peers', 'text')]
+        return super().get_table_schema()
+
+    def get_related_entities(self):
+        print(self.message.peers)
+        relations = SqlRelations(self, self.message.peers, 'peers', 'peer')
+        return relations.get_mappers()
 
 
 class ASCPullAckMessageMapper(NetworkMessageMixin, IMapper):
 
     def to_dict(self):
         data = super().to_dict()
-        data.update({
-            'id': self.message.id,
-            'blocks': json.dumps(self.message.blocks)
-        })
+        data.update({'id': self.message.id})
         return data
 
     def get_table_schema(self):
-        return super().get_table_schema() + [('id', 'text'),
-                                             ('blocks', 'text')]
+        return super().get_table_schema() + [('id', 'text')]
+
+    def get_related_entities(self):
+        relations = SqlRelations(self, self.message.blocks, 'blocks')
+        return relations.get_mappers()
 
 
 class ASCPullReqMessageMapper(NetworkMessageMixin, IMapper):
@@ -207,9 +211,7 @@ class NodeProcessConfirmedMessageMapper(MessageMixin, IMapper):
             'balance': self.message.balance,
             'link': self.message.link,
             'signature': self.message.signature,
-            'work': self.message.work,
-            'sideband':
-            json.dumps(self.message.sideband)  # save as json string
+            'work': self.message.work
         })
         return data
 
@@ -222,8 +224,16 @@ class NodeProcessConfirmedMessageMapper(MessageMixin, IMapper):
                                              ('balance', 'text'),
                                              ('link', 'text'),
                                              ('signature', 'text'),
-                                             ('work', 'text'),
-                                             ('sideband', 'jsonb')]
+                                             ('work', 'text')]
+
+    def get_related_entities(self):
+
+        #Nested dicts can't be dynamcailly mapped
+        self.message.sideband["details"] = str(
+            self.message.sideband["details"])
+
+        relations = SqlRelations(self, self.message.sideband, 'sideband')
+        return relations.get_mappers()
 
 
 class ActiveStartedMessageMapper(MessageMixin, IMapper):
