@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from .mixins import BaseAttributesMixin
 from src.parsing_utils import ParseException
+import re
+import json
 
 
 class Message(ABC, BaseAttributesMixin):
@@ -45,3 +47,14 @@ class Message(ABC, BaseAttributesMixin):
         if timestamp == 18446744073709551615:
             return -1
         return timestamp
+
+    def extract_json(self, line, variable):
+        # Using a regular expression to find the message part
+        regex = f'{variable}={{(.*)}}'
+        matches = re.findall(regex, line)
+        string = "{" + matches[0] + "}" if matches else None
+        string = re.sub(r'\s*=\s*', ':', string)
+        # Replace keys with "key". Lookbehind and lookahead are used to avoid replacing substrings within double quotes.
+        string = re.sub(r'(?<=\{|,|\[)\s*([a-zA-Z0-9_]+)\s*(?=:)', r'"\1"',
+                        string)
+        return json.loads(string)
