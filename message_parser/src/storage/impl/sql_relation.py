@@ -32,25 +32,33 @@ class SqlRelations:
                  table_name,
                  key_for_string=None):
         self.message_mapper = message_mapper
+        self.table_name = table_name
+        self.key_for_string = key_for_string
         self.relations = []
-        for data in data_list:
-            if isinstance(data, dict):
-                self.relations.append(
-                    SqlRelation(self.message_mapper.parent_entity_name,
-                                self.message_mapper.sql_id, data, table_name))
+        self.process_data(data_list)
 
-            # If the data is a string, we convert it to a dictionary before creating a SqlRelation object
-            # The key for this dictionary is provided by the key_for_string argument.
-            # We do this because the SqlRelation object expects its data argument to be a dictionary, not a string.
-            elif isinstance(data, str) and key_for_string is not None:
-                self.relations.append(
-                    SqlRelation(self.message_mapper.parent_entity_name,
-                                self.message_mapper.sql_id,
-                                {key_for_string: data}, table_name))
-            else:
-                raise TypeError(
-                    "Data list must contain either dictionaries or strings (with key_for_string provided)"
-                )
+    def process_data(self, data_list):
+        # if the data_list is not a list (string or dict), make it a list
+        if not isinstance(data_list, list):
+            data_list = [data_list]
+
+        for data in data_list:
+            self.add_relation(data)
+
+    def add_relation(self, data):
+        if isinstance(data, dict):
+            self.create_relation(data)
+        elif isinstance(data, str) and self.key_for_string is not None:
+            self.create_relation({self.key_for_string: data})
+        else:
+            raise TypeError(
+                f"{type(data)} - Data list must contain either dictionaries or strings (with key_for_string provided)"
+            )
+
+    def create_relation(self, data):
+        self.relations.append(
+            SqlRelation(self.message_mapper.parent_entity_name,
+                        self.message_mapper.sql_id, data, self.table_name))
 
     # This function simply collates all the mappers from all the SqlRelation objects
     def get_mappers(self):
@@ -97,7 +105,14 @@ class HashableMapper(MapperMixin, IMapper):
         return self.table_name
 
     def get_table_schema(self):
+
         schema = [('id', 'integer primary key')]
-        for key in self.data.keys():
-            schema.append((key, 'text'))
+        for key, value in self.data.items():
+            if isinstance(value, int):
+                schema.append((key, 'integer'))
+            elif isinstance(value, float):
+                schema.append((key, 'real'))
+            else:  # default to text if it's not int or float
+                schema.append((key, 'text'))
+        print(schema, self.data)
         return schema
