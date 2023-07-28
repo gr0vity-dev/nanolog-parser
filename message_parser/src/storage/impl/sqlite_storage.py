@@ -1,6 +1,7 @@
 import sqlite3
 from src.messages import *
-from src.storage.impl.sql_message_mapper import *
+from src.storage.impl.sql_mappers import *
+from src.storage.impl.sql_relation import HashableMapper, LinkMapper
 
 
 class SQLiteStorage:
@@ -17,8 +18,7 @@ class SQLiteStorage:
             'ProcessedBlocksMessage': ProcessedBlocksMessageMapper,
             'BlocksInQueueMessage': BlocksInQueueMessageMapper,
             'BroadcastMessage': BroadcastMessageMapper,
-            'FlushMessage':
-            FlushMessageMapper,  # note: relies on ConfirmReqMessage being present
+            'FlushMessage': FlushMessageMapper,
             'GenerateVoteNormalMessage': GenerateVoteNormalMessageMapper,
             'GenerateVoteFinalMessage': GenerateVoteFinalMessageMapper,
             'NodeProcessConfirmedMessage': NodeProcessConfirmedMessageMapper,
