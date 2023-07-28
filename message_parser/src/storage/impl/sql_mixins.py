@@ -1,22 +1,35 @@
 class MapperMixin:
 
+    def get_table_name(self):
+        return self.message.class_name.lower()
+
+    def to_dict(self):
+        return {}
+
+    def to_key(self):
+        return "_".join(list(self.to_dict().values()))
+
     def is_dependent(self):
         return False
 
     def convert_related_ids(self, id_mappings):
         return self.to_dict()
 
-
-class MessageMixin:
-
-    def __init__(self, message):
-        self.message = message
-
-    def get_table_name(self):
-        return self.message.class_name.lower()
+    def handle_table(self):
+        return self.get_table_name(), self.get_table_schema(), self.to_dict()
 
     def get_related_entities(self):
         return []
+
+    @property
+    def parent_entity_name(self):
+        return self.__class__.__name__.replace("Mapper", "").lower()
+
+
+class MessageMixin(MapperMixin):
+
+    def __init__(self, message):
+        self.message = message
 
     def to_dict(self):
         return {

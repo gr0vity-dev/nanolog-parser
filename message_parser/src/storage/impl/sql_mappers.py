@@ -36,10 +36,6 @@ class ConfirmAckMessageMapper(NetworkMessageMixin, IMapper):
         relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
         return relations.get_mappers()
 
-    @property
-    def parent_entity_name(self):
-        return 'confirmackmessage'
-
 
 class ConfirmReqMessageMapper(NetworkMessageMixin, IMapper):
 
@@ -58,10 +54,6 @@ class ConfirmReqMessageMapper(NetworkMessageMixin, IMapper):
     def get_related_entities(self):
         relations = SqlRelations(self, self.message.roots, 'roots')
         return relations.get_mappers()
-
-    @property
-    def parent_entity_name(self):
-        return 'confirmreqmessage'
 
 
 class PublishMessageMapper(NetworkMessageMixin, IMapper):
@@ -271,10 +263,6 @@ class ActiveStoppedMessageMapper(MessageMixin, IMapper):
         relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
         return relations.get_mappers()
 
-    @property
-    def parent_entity_name(self):
-        return 'activestoppedmessage'
-
 
 class BroadcastMessageMapper(MessageMixin, IMapper):
 
@@ -335,10 +323,6 @@ class UnknownMessageMapper(MessageMixin, IMapper):
 
 
 class FlushMessageMapper(MessageMixin, IMapper):
-
-    @property
-    def parent_entity_name(self):
-        return 'flushmessage'
 
     def to_dict(self):
         data = super().to_dict()

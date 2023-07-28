@@ -15,18 +15,22 @@ class IMapper(ABC):
     def to_dict(self):
         pass
 
+    @abstractmethod
     def to_key(self):
-        return "_".join(list(self.to_dict().values()))
+        pass
 
     @abstractmethod
     def get_related_entities(self):
         return []
 
+    @abstractmethod
     def is_dependent(self):
-        return False
+        pass
 
+    @abstractmethod
     def convert_related_ids(self, id_mappings):
         pass
 
+    @abstractmethod
     def handle_table(self):
-        return self.get_table_name(), self.get_table_schema(), self.to_dict()
+        pass

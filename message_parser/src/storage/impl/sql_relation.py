@@ -60,7 +60,7 @@ class SqlRelations:
         ]
 
 
-class LinkMapper(IMapper, MapperMixin):
+class LinkMapper(MapperMixin, IMapper):
 
     def __init__(self, data):
         self.data = data
@@ -75,20 +75,16 @@ class LinkMapper(IMapper, MapperMixin):
         return [('message_type', 'text'), ('message_id', 'integer'),
                 ('relation_type', 'text'), ('relation_id', 'integer')]
 
-    def get_related_entities(self):
-        return []
-
     def is_dependent(self):
         return True
 
     def convert_related_ids(self, id_mappings):
-        self.data['relation_id'] = id_mappings.get(self.data['relation_id'],
-                                                   self.data['relation_id'])
+        self.data['relation_id'] = id_mappings[self.data['relation_id']]
         return self.to_dict()
 
 
 # HashableMapper
-class HashableMapper(IMapper, MapperMixin):
+class HashableMapper(MapperMixin, IMapper):
 
     def __init__(self, data, table_name):
         self.data = data
@@ -105,12 +101,3 @@ class HashableMapper(IMapper, MapperMixin):
         for key in self.data.keys():
             schema.append((key, 'text'))
         return schema
-
-    def get_related_entities(self):
-        return []
-
-    def is_dependent(self):
-        return False
-
-    def convert_related_ids(self, id_mappings):
-        return self.to_dict()
