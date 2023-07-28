@@ -114,5 +114,4 @@ class HashableMapper(MapperMixin, IMapper):
                 schema.append((key, 'real'))
             else:  # default to text if it's not int or float
                 schema.append((key, 'text'))
-        print(schema, self.data)
         return schema

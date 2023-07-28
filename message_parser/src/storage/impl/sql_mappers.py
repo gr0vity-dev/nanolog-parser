@@ -93,7 +93,6 @@ class KeepAliveMessageMapper(NetworkMessageMixin, IMapper):
         return super().get_table_schema()
 
     def get_related_entities(self):
-        print(self.message.peers)
         relations = SqlRelations(self, self.message.peers, 'peers', 'peer')
         return relations.get_mappers()
 
