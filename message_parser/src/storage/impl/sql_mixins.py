@@ -7,7 +7,7 @@ class MapperMixin:
         return {}
 
     def to_key(self):
-        return "_".join(list(self.to_dict().values()))
+        return "_".join([str(x) for x in list(self.to_dict().values())])
 
     def is_dependent(self):
         return False
