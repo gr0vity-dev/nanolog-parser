@@ -1,4 +1,4 @@
-from .base_message import Message
+from .base_message import Message, MessageAttributeParser
 from .mixins import BaseAttributesMixin
 import re
 import json
@@ -23,7 +23,7 @@ class BlockProcessedMessage(BlockProcessorMessage):
         self.result = self.extract_result(line)
         self.forced = self.extract_forced(line)
 
-        block_json = self.extract_json(line, "block")
+        block_json = MessageAttributeParser.parse_json_attribute(line, "block")
 
         self.block_type = block_json.get('type')
         self.hash = block_json.get('hash')

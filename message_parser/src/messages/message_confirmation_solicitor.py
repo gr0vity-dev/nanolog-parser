@@ -1,4 +1,4 @@
-from .base_message import Message
+from .base_message import Message, MessageAttributeParser
 from src.messages import ConfirmReqMessage
 import re
 
@@ -27,7 +27,6 @@ class FlushMessage(ConfirmationSolicitorMessage):
 
     def parse_specific(self, line):
         regex = r'channel="(?P<channel>[^"]+)", confirm_req=(?P<confirm_req>{(?:[^{}]|{[^{}]*})+})'
-
         match = re.search(regex, line)
 
         if match:

@@ -1,4 +1,4 @@
-from .base_message import Message
+from .base_message import Message, MessageAttributeParser
 from .mixins import BaseAttributesMixin, HeaderMixin
 
 
@@ -6,15 +6,18 @@ class NetworkMessage(Message, BaseAttributesMixin, HeaderMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.message_dict = None
 
-    def set_message_dict(self, message):
-        self.message = message
+    def set_message_dict(self, message_dict):
+        self.message_dict = message_dict
 
     def parse_common(self, line):  # Overridden method
-        self.message_dict = self.extract_json(line, "message")
+
+        self.message_dict = self.message_dict or MessageAttributeParser.parse_json_attribute(
+            line, "message")
         self.parse_header(self.message_dict['header'])
 
-    def parse_specific(self, line):  # Overridden method
+    def parse_specific(self, line):
         self.content = line
 
 

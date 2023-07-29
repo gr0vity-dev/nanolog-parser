@@ -1,7 +1,4 @@
-from .base_message import Message
-from .mixins import BaseAttributesMixin
-import re
-import json
+from .base_message import Message, MessageAttributeParser
 
 
 class NodeMessage(Message):
@@ -19,7 +16,7 @@ class NodeProcessConfirmedMessage(NodeMessage):
         super().__init__(*args, **kwargs)
 
     def parse_specific(self, line):
-        block_json = self.extract_json(line, "block")
+        block_json = MessageAttributeParser.parse_json_attribute(line, "block")
 
         self.block_type = block_json.get('type')
         self.hash = block_json.get('hash')

@@ -1,4 +1,4 @@
-from .base_message import Message
+from .base_message import Message, MessageAttributeParser
 import re
 
 
@@ -14,18 +14,20 @@ class ActiveTransactionsMessage(Message):
 class ActiveStartedMessage(ActiveTransactionsMessage):
 
     def parse_specific(self, remainder):
-        regex = r'root="(?P<root>[^"]+)", hash="(?P<hash>[^"]+)", behaviour="(?P<behaviour>[^"]+)"'
-        match = re.search(regex, remainder)
+        election = MessageAttributeParser.parse_json_attribute(
+            remainder, "election")
 
-        if match:
-            self.root = match.group('root')
-            self.hash = match.group('hash')
-            self.behaviour = match.group('behaviour')
+        self.root = election["root"]
+        self.hash = election["winner"]
+        self.behaviour = election["behaviour"]
 
 
 class ActiveStoppedMessage(ActiveTransactionsMessage):
 
     def parse_specific(self, remainder):
+        election = MessageAttributeParser.parse_json_attribute(
+            remainder, "election")
+        raise Exception(election)
         regex = r'root="(?P<root>[^"]+)", hashes=\[(?P<hashes>[^]]+)\], behaviour="(?P<behaviour>[^"]+)", confirmed=(?P<confirmed>\w+)'
         match = re.search(regex, remainder)
 
