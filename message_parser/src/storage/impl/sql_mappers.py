@@ -17,6 +17,8 @@ class ConfirmAckMessageMapper(NetworkMessageMixin, IMapper):
 
     def to_dict(self):
         data = super().to_dict()
+        self.message.timestamp = SQLDataNormalizer.adjust_max_timestamp(
+            self.message.timestamp)
         data.update({
             'account': self.message.account,
             'timestamp': self.message.timestamp,

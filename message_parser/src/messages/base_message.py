@@ -65,8 +65,3 @@ class Message(ABC, BaseAttributesMixin):
         except Exception as ex:
             raise ParseException(
                 f'Error parsing {self.__class__.__name__} message') from ex
-
-    def normalize_timestamp(self, timestamp):
-        if timestamp == 18446744073709551615:
-            return -1
-        return timestamp

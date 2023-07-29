@@ -32,11 +32,13 @@ def test_active_transactions_stopped_message_parsing():
     assert message.log_event == 'active_stopped'
 
     assert message.root == 'F4E0F29524503FC2C794F90BF83B91F20834F331B776800A0DA350507B08CC4EF4E0F29524503FC2C794F90BF83B91F20834F331B776800A0DA350507B08CC4E'
-    assert message.hashes == [
-        '6D42FB40A4DEDBD2A38CB18565E0AA4D17F1B81036CEB1A53D4DB8B4309748AA'
-    ]
-    assert message.behaviour == 'hinted'
+    assert message.behaviour == "hinted"
+    assert message.state == "expired_confirmed"
     assert message.confirmed == True
+    assert message.winner == "6D42FB40A4DEDBD2A38CB18565E0AA4D17F1B81036CEB1A53D4DB8B4309748AA"
+    assert message.tally_amount == "199987308019747226638731596728893410000"
+    assert message.final_tally_amount == "149987308019747226638731596728893410000"
+
     assert message.tally == [{
         "amount":
         "199987308019747226638731596728893410000",

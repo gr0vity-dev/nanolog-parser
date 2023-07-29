@@ -62,7 +62,8 @@ class NetworkMessageMixin(MessageMixin):
             'version': self.message.version,
             'version_min': self.message.version_min,
             'version_max': self.message.version_max,
-            'extensions': self.message.extensions
+            'extensions': self.message.extensions,
+            'action': "message_received"
         })
         return data
 
@@ -75,4 +76,5 @@ class NetworkMessageMixin(MessageMixin):
             ('version_min', 'integer'),
             ('version_max', 'integer'),
             ('extensions', 'integer'),
+            ('action', 'text'),
         ]

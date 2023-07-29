@@ -7,12 +7,12 @@ class NetworkMessage(Message, BaseAttributesMixin, HeaderMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.message_dict = None
+        self.action = "message_received"
 
     def set_message_dict(self, message_dict):
         self.message_dict = message_dict
 
     def parse_common(self, line):  # Overridden method
-
         self.message_dict = self.message_dict or MessageAttributeParser.parse_json_attribute(
             line, "message")
         self.parse_header(self.message_dict['header'])
@@ -33,11 +33,10 @@ class ConfirmAckMessage(NetworkMessage):
 
     def parse_specific(self, _):
         self.account = self.message_dict['vote']['account']
-        self.timestamp = self.normalize_timestamp(
-            self.message_dict['vote']['timestamp'])
+        self.timestamp = self.message_dict['vote']['timestamp']
         self.hashes = self.message_dict['vote']['hashes']
         self.hash_count = len(self.hashes)
-        self.vote_type = "final" if self.timestamp == -1 else "normal"
+        self.vote_type = "final" if self.timestamp == 18446744073709551615 else "normal"
 
 
 class ConfirmReqMessage(NetworkMessage):

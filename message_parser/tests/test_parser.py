@@ -57,7 +57,7 @@ def test_confirm_ack_message_parse():
     assert message.version_max == 19
     assert message.extensions == 4352
     assert message.account == "399385203231BC15F0DFB54A28152F03912A084285BB1ED83437DEF8C7F4815D"
-    assert message.timestamp == -1
+    assert message.timestamp == 18446744073709551615
     assert message.hashes == [
         "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B"
     ]

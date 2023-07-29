@@ -29,8 +29,11 @@ class ActiveStoppedMessage(ActiveTransactionsMessage):
             remainder, "election")
 
         self.root = election["root"]
-        self.hashes = [block["hash"] for block in election["blocks"]]
         self.behaviour = election["behaviour"]
+        self.state = election["state"]
+        self.winner = election["winner"]
+        self.tally_amount = election["tally_amount"]
+        self.final_tally_amount = election["final_tally_amount"]
         self.confirmed = election["confirmed"]
         self.blocks = election["blocks"]
         self.votes = election["votes"]
