@@ -40,7 +40,13 @@ class LogParser(BaseParser):
         'network_msg': NetworkMessage
     }
 
+    CHANNEL_MESSAGE_TYPES = {
+        'confirm_ack_sent': ConfirmAckMessageSent,
+        'confirm_ack_dropped': ConfirmAckMessageDropped
+    }
+
     MESSAGE_TYPES = {
+        **CHANNEL_MESSAGE_TYPES,
         **NETWORK_MESSAGE_TYPES,
         **ACTIVE_TRANSACTION_MESSAGE_TYPES,
         **NODE_MESSAGE_TYPES,
@@ -50,11 +56,14 @@ class LogParser(BaseParser):
     }
 
     def get_message_type_patterns(self):
-        network_regex = '"message_received" message={{ header={{ type="({}?)",'
+        network_regex = r'\[network\] \[trace\] "message_received" message={{ header={{ type="({}?)",'
+        channel_sent_regex = r'\[channel\] \[trace\] "message_sent" message={{ header={{ type="({}?)",'
+        channel_dropped_regex = r'\[channel\] .* message={{ header={{ type="({}?)",'
 
         return {
             #network
             'confirm_ack': network_regex.format("confirm_ack"),
+            'confirm_ack_sent': channel_sent_regex.format("confirm_ack"),
             'confirm_req': network_regex.format("confirm_req"),
             'publish': network_regex.format("publish"),
             'keepalive': network_regex.format("keepalive"),
