@@ -7,10 +7,6 @@ class BaseParser(ABC):
     MESSAGE_TYPES = {}
 
     @abstractmethod
-    def get_message_type_regex(self):
-        pass
-
-    @abstractmethod
     def get_message_type_patterns(self):
         pass
 
