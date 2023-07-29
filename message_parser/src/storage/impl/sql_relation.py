@@ -37,6 +37,17 @@ class SqlRelations:
         self.relations = []
         self.process_data(data_list)
 
+    def __add__(self, other):
+        if isinstance(other, SqlRelations):
+            result = SqlRelations(self.message_mapper, [], self.table_name,
+                                  self.key_for_string)
+            result.relations = self.relations + other.relations
+            return result
+        else:
+            raise TypeError(
+                f'unsupported operand type(s) for +: SqlRelations and {type(other).__name__}'
+            )
+
     def process_data(self, data_list):
         # if the data_list is not a list (string or dict), make it a list
         if not isinstance(data_list, list):
@@ -107,11 +118,11 @@ class HashableMapper(MapperMixin, IMapper):
     def get_table_schema(self):
 
         schema = [('id', 'integer primary key')]
-        for key, value in self.data.items():
-            if isinstance(value, int):
-                schema.append((key, 'integer'))
-            elif isinstance(value, float):
-                schema.append((key, 'real'))
-            else:  # default to text if it's not int or float
-                schema.append((key, 'text'))
+        for key, _ in self.data.items():
+            # if isinstance(value, int):
+            #     schema.append((key, 'integer'))
+            # elif isinstance(value, float):
+            #     schema.append((key, 'real'))
+            # else:  # default to text if it's not int or float
+            schema.append((key, 'text'))
         return schema

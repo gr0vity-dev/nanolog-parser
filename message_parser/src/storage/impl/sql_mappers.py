@@ -2,6 +2,7 @@ import json
 from src.storage.impl.sql_mixins import *
 from src.storage.impl.sql_mapper_interface import IMapper
 from src.storage.impl.sql_relation import SqlRelations
+from src.storage.impl.sql_normalizer import SQLDataNormalizer
 
 
 class MessageMapper(MessageMixin, IMapper):
@@ -269,7 +270,12 @@ class ActiveStoppedMessageMapper(MessageMixin, IMapper):
                                              ('confirmed', 'boolean')]
 
     def get_related_entities(self):
-        relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
+        SQLDataNormalizer.normalize_block_fields(self.message.blocks)
+        SQLDataNormalizer.normalize_vote_fields(self.message.votes)
+
+        relations = SqlRelations(self, self.message.blocks, 'blocks')
+        relations += SqlRelations(self, self.message.votes, 'votes')
+        relations += SqlRelations(self, self.message.votes, 'tally')
         return relations.get_mappers()
 
 
