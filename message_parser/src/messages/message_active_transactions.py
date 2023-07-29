@@ -27,15 +27,11 @@ class ActiveStoppedMessage(ActiveTransactionsMessage):
     def parse_specific(self, remainder):
         election = MessageAttributeParser.parse_json_attribute(
             remainder, "election")
-        raise Exception(election)
-        regex = r'root="(?P<root>[^"]+)", hashes=\[(?P<hashes>[^]]+)\], behaviour="(?P<behaviour>[^"]+)", confirmed=(?P<confirmed>\w+)'
-        match = re.search(regex, remainder)
 
-        if match:
-            self.root = match.group('root')
-            self.hashes = [
-                h.strip().replace('"', '')
-                for h in match.group('hashes').split(',')
-            ]
-            self.behaviour = match.group('behaviour')
-            self.confirmed = match.group('confirmed') == 'true'
+        self.root = election["root"]
+        self.hashes = [block["hash"] for block in election["blocks"]]
+        self.behaviour = election["behaviour"]
+        self.confirmed = election["confirmed"]
+        self.blocks = election["blocks"]
+        self.votes = election["votes"]
+        self.tally = election["tally"]
