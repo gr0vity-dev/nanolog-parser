@@ -370,11 +370,9 @@ class ChannelMessageMapper(MessageMixin, IMapper):
         return super().get_table_schema() + [('vote_count', 'int')]
 
     def get_related_entities(self):
-        header = self.message.content["message"]["header"]
-        vote = SQLDataNormalizer.normalize_vote(
-            self.message.content["message"]["vote"])
-        channel = SQLDataNormalizer.normalize_channel(
-            self.message.content["channel"])
+        header = self.message.message["header"]
+        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
+        channel = SQLDataNormalizer.normalize_channel(self.message.channel)
 
         relations = SqlRelations(self, header, 'headers')
         relations += SqlRelations(self, vote, 'votes')
@@ -383,12 +381,10 @@ class ChannelMessageMapper(MessageMixin, IMapper):
         return relations.get_mappers()
 
 
-class ConfirmAckMessageSentMapper(ChannelMessageMapper):
+class ChannelConfirmAckMapper(ChannelMessageMapper):
 
     def to_dict(self):
         data = super().to_dict()
-        data.update({
-            'vote_count':
-            len(self.message.content["message"]["vote"]["hashes"])
-        })
+        data.update(
+            {'vote_count': len(self.message.message["vote"]["hashes"])})
         return data

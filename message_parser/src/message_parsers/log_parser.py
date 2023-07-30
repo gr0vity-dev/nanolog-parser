@@ -12,7 +12,7 @@ class LogParser(BaseParser):
     def _configure_parsers(self):
         # Define message parsing configurations here
         # For example, for 'confirm_ack' messages:
-        self.parser.register_parser("channel_sent", {
+        self.parser.register_parser("channel_sent", ChannelConfirmAck, {
             MessageAttributeParser.parse_json_attribute:
             ["message", "channel"]
         })
@@ -20,8 +20,8 @@ class LogParser(BaseParser):
 
     def parse_log(self, line, file_name=None):
         message_type = self.determine_message_type(line)
-        message_dict = self.parser.parse_message(line, message_type, file_name)
-        return self.MESSAGE_TYPES[message_type](message_dict)
+        return self.parser.parse_message(line, message_type, file_name)
+        #return self.MESSAGE_TYPES[message_type](message_dict)
 
     def get_message_type_patterns(self):
         network_regex = r'\[network\] \[trace\] "message_received" message={{ header={{ type="({}?)",'
@@ -102,17 +102,18 @@ class LogParser(BaseParser):
         'network_msg': NetworkMessage
     }
 
-    CHANNEL_MESSAGE_TYPES = {
-        'channel_sent': ConfirmAckMessageSent,
-        'confirm_ack_dropped': ConfirmAckMessageDropped
-    }
+    # CHANNEL_MESSAGE_TYPES = {
+    #     'channel_sent': ConfirmAckMessageSent,
+    #     'confirm_ack_dropped': ConfirmAckMessageDropped
+    # }
 
     MESSAGE_TYPES = {
-        **CHANNEL_MESSAGE_TYPES,
+        # **CHANNEL_MESSAGE_TYPES,
         **NETWORK_MESSAGE_TYPES,
         **ACTIVE_TRANSACTION_MESSAGE_TYPES,
         **NODE_MESSAGE_TYPES,
         **BLOCKPROCESSOR_MESSAGE_TYPES,
         **CONFIRMATION_SOLICITOR_MESSAGE_TYPES,
-        **ELECTION_MESSAGE_TYPES, 'unknown': UnknownMessage
+        **ELECTION_MESSAGE_TYPES,
+        'unknown': UnknownMessage
     }

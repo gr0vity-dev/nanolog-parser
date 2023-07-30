@@ -33,7 +33,7 @@ class SQLiteStorage:
             'NetworkMessage': NetworkMessageMapper,
             'UnknownMessage': UnknownMessageMapper,
             'ChannelMessageMapper': ChannelMessageMapper,
-            'ConfirmAckMessageSent': ConfirmAckMessageSentMapper
+            'ChannelConfirmAck': ChannelConfirmAckMapper
             # ... add any other mappings here ...
         }
 

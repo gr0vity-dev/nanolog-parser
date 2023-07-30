@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 class IMessageParser(ABC):
 
     @abstractmethod
-    def register_parser(self, message_type, key, parser):
+    def register_parser(self, message_type, message_class, key, parser):
         pass
 
     @abstractmethod
@@ -20,7 +20,8 @@ class MessageParser(IMessageParser):
     def __init__(self):
         self.parsers = defaultdict(list)
 
-    def register_parser(self, message_type, parser_dict):
+    def register_parser(self, message_type, message_class, parser_dict):
+        self.message_class = message_class
         for parser, keys in parser_dict.items():
             for key in keys:
                 self.parsers[message_type].append((key, parser))
@@ -37,4 +38,4 @@ class MessageParser(IMessageParser):
         if parser_applied:
             attributes.pop("content")
 
-        return attributes
+        return self.message_class(attributes)
