@@ -358,3 +358,37 @@ class FlushMessageMapper(MessageMixin, IMapper):
     def get_related_entities(self):
         relations = SqlRelations(self, self.message.confirm_req.roots, 'roots')
         return relations.get_mappers()
+
+
+class ChannelMessageMapper(MessageMixin, IMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('vote_count', 'int')]
+
+    def get_related_entities(self):
+        header = self.message.content["message"]["header"]
+        vote = SQLDataNormalizer.normalize_vote(
+            self.message.content["message"]["vote"])
+        channel = SQLDataNormalizer.normalize_channel(
+            self.message.content["channel"])
+
+        relations = SqlRelations(self, header, 'headers')
+        relations += SqlRelations(self, vote, 'votes')
+        relations += SqlRelations(self, channel, 'channels')
+
+        return relations.get_mappers()
+
+
+class ConfirmAckMessageSentMapper(ChannelMessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'vote_count':
+            len(self.message.content["message"]["vote"]["hashes"])
+        })
+        return data

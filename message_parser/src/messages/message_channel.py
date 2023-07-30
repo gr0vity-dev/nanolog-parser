@@ -1,15 +1,22 @@
 from . import ConfirmAckMessage
+from .base_message import Message
 
 
-class ConfirmAckMessageSent(ConfirmAckMessage):
+class ChannelMessage():
+    pass
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+class ConfirmAckMessageSent(ChannelMessage):
+
+    def __init__(self, message_dict):
+        self.class_name = self.__class__.__name__
         self.action = "message_sent"
+        self.content = message_dict
 
 
-class ConfirmAckMessageDropped(ConfirmAckMessage):
+class ConfirmAckMessageDropped(ChannelMessage):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, message_dict):
+        self.class_name = self.__class__.__name__
         self.action = "message_dropped"
+        self.content = message_dict

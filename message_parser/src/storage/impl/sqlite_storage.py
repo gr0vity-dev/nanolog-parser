@@ -13,8 +13,8 @@ class SQLiteStorage:
             'LinkMapper': LinkMapper
         }
         self.mapper_registry = {
-            **base_mappers,
-            'BlockProcessedMessage': BlockProcessedMessageMapper,
+            **base_mappers, 'BlockProcessedMessage':
+            BlockProcessedMessageMapper,
             'ProcessedBlocksMessage': ProcessedBlocksMessageMapper,
             'BlocksInQueueMessage': BlocksInQueueMessageMapper,
             'BroadcastMessage': BroadcastMessageMapper,
@@ -32,6 +32,8 @@ class SQLiteStorage:
             'AscPullReqMessage': ASCPullReqMessageMapper,
             'NetworkMessage': NetworkMessageMapper,
             'UnknownMessage': UnknownMessageMapper,
+            'ChannelMessageMapper': ChannelMessageMapper,
+            'ConfirmAckMessageSent': ConfirmAckMessageSentMapper
             # ... add any other mappings here ...
         }
 

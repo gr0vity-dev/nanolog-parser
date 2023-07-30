@@ -17,10 +17,9 @@ NETWORK_COMMON_PROPERTIES = COMMON_PROPERTIES + [
 def test_store_channel_sent():
     # Prepare a sample ConfirmAckMessage
     line = '[2023-07-28 21:43:31.200] [channel] [trace] "message_sent" message={ header={ type="confirm_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=4352 }, vote={ account="398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC", timestamp=18446744073709551615, hashes=[ "B0B14D451CDC5623A8376741B9B63811F77B64EDFEB281DE18D05E958BD6B225" ] } }, channel={ endpoint="[::ffff:192.168.112.6]:17075", peering_endpoint="[::ffff:192.168.112.6]:17075", node_id="2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78", socket={ remote_endpoint="[::ffff:192.168.112.6]:17075", local_endpoint="[::ffff:192.168.112.4]:39184" } }'
-    properties = NETWORK_COMMON_PROPERTIES + [
-        'account', 'hash_count', 'vote_type', 'timestamp'
-    ]
-    store_message_test(line, ConfirmAckMessageSent, properties, 'hashes')
+    properties = COMMON_PROPERTIES + ['vote_count']
+    store_message_test(line, ConfirmAckMessageSent, properties,
+                       ['channels', 'votes', 'headers'])
 
 
 def test_store_confirm_ack_message():
@@ -292,4 +291,7 @@ def assert_data_in_table(storage, message_class, message, properties):
 
     # Assert each property is correctly stored
     for property in properties:
-        assert stored_message_dict[property] == getattr(message, property)
+        if property in message.content:
+            assert stored_message_dict[property] == message.content[property]
+        else:
+            assert property in stored_message_dict

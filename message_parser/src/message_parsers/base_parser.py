@@ -20,7 +20,7 @@ class BaseParser(ABC):
                 return message_type
         return self.get_default_message_type()
 
-    def parse_message(self, line, filename=None):
+    def parse_log(self, line, filename=None):
         message_type = self.determine_message_type(line)
         message_class = self.MESSAGE_TYPES.get(message_type)
         if message_class is None:
