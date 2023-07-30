@@ -20,9 +20,10 @@ class BaseParser(ABC):
                 return message_type
         return self.get_default_message_type()
 
-    def parse_log(self, line, filename=None):
-        message_type = self.determine_message_type(line)
-        message_class = self.MESSAGE_TYPES.get(message_type)
-        if message_class is None:
-            raise ValueError(f"Unknown message type {message_type}.")
-        return message_class(filename).parse(line)
+    def parse_log(self, line, file_name=None):
+        pass
+        # message_type = self.determine_message_type(line)
+        # message_class = self.MESSAGE_TYPES.get(message_type)
+        # if message_class is None:
+        #     raise ValueError(f"Unknown message type {message_type}.")
+        # return message_class(file_name).parse(line)

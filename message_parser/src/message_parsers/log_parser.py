@@ -10,18 +10,57 @@ class LogParser(BaseParser):
         self._configure_parsers()
 
     def _configure_parsers(self):
-        # Define message parsing configurations here
-        # For example, for 'confirm_ack' messages:
-        self.parser.register_parser("channel_sent", ChannelConfirmAck, {
-            MessageAttributeParser.parse_json_attribute:
-            ["message", "channel"]
-        })
-        # Repeat for other message types...
+        # Define a mapping from message type to class
+        self.message_configurations = {
+            "channel_confirm_ack": ChannelConfirmAck,
+            "network_confirm_ack": ConfirmAckMessage,
+            "network_confirm_req": ConfirmReqMessage,
+            "network_publish": PublishMessage,
+            "network_keepalive": KeepAliveMessage,
+            "network_asc_pull_ack": AscPullAckMessage,
+            "network_asc_pull_req": AscPullReqMessage,
+            "network_msg": NetworkMessage,
+            "election_generate_vote_normal": ElectionGenerateVoteNormalMessage,
+            "election_generate_vote_final": ElectionGenerateVoteFinalMessage,
+            "broadcast": BroadcastMessage,
+            "flush": FlushMessage,
+            "block_processed": BlockProcessedMessage,
+            "processed_blocks": ProcessedBlocksMessage,
+            "blocks_in_queue": BlocksInQueueMessage,
+            "block_processor": BlockProcessorMessage,
+            "active_started": ActiveStartedMessage,
+            "active_stopped": ActiveStoppedMessage,
+            "process_confirmed": ProcessConfirmedMessage,
+            "unknown": UnknownMessage,
+        }
 
     def parse_log(self, line, file_name=None):
         message_type = self.determine_message_type(line)
-        return self.parser.parse_message(line, message_type, file_name)
-        #return self.MESSAGE_TYPES[message_type](message_dict)
+        message_class = self.message_configurations.get(message_type)
+
+        if message_class:
+            self._register_parser_for_message_type(line, message_type,
+                                                   message_class)
+
+        try:
+            result = self.parser.parse_message(line, message_type, file_name)
+        except Exception as ex:
+            raise ParseException(
+                f'Error parsing {self.__class__.__name__} message') from ex
+        return result
+
+    def _register_parser_for_message_type(self, line, message_type,
+                                          message_class):
+        parse_json = MessageAttributeParser.parse_json_attribute
+        parse_string = MessageAttributeParser.parse_attribute
+
+        parser_config = MessageAttributeParser.extract_attributes(line)
+        attribute_parsers = {
+            parse_json: parser_config["json"],
+            parse_string: parser_config["string"]
+        }
+        self.parser.register_parser(message_type, message_class,
+                                    attribute_parsers)
 
     def get_message_type_patterns(self):
         network_regex = r'\[network\] \[trace\] "message_received" message={{ header={{ type="({}?)",'
@@ -30,13 +69,13 @@ class LogParser(BaseParser):
 
         return {
             #network
-            'confirm_ack': network_regex.format("confirm_ack"),
-            'channel_sent': channel_sent_regex.format("confirm_ack"),
-            'confirm_req': network_regex.format("confirm_req"),
-            'publish': network_regex.format("publish"),
-            'keepalive': network_regex.format("keepalive"),
-            'asc_pull_ack': network_regex.format("asc_pull_ack"),
-            'asc_pull_req': network_regex.format("asc_pull_req"),
+            'network_confirm_ack': network_regex.format("confirm_ack"),
+            'channel_confirm_ack': channel_sent_regex.format("confirm_ack"),
+            'network_confirm_req': network_regex.format("confirm_req"),
+            'network_publish': network_regex.format("publish"),
+            'network_keepalive': network_regex.format("keepalive"),
+            'network_asc_pull_ack': network_regex.format("asc_pull_ack"),
+            'network_asc_pull_req': network_regex.format("asc_pull_req"),
             'network_msg': r'\[network\] .*',
             #election
             "election_generate_vote_normal":
@@ -65,55 +104,3 @@ class LogParser(BaseParser):
 
     def get_default_message_type(self):
         return 'unknown'
-
-    ACTIVE_TRANSACTION_MESSAGE_TYPES = {
-        'active_started': ActiveStartedMessage,
-        'active_stopped': ActiveStoppedMessage,
-    }
-
-    NODE_MESSAGE_TYPES = {
-        'process_confirmed': NodeProcessConfirmedMessage,
-    }
-
-    BLOCKPROCESSOR_MESSAGE_TYPES = {
-        'block_processed': BlockProcessedMessage,
-        'processed_blocks': ProcessedBlocksMessage,
-        'blocks_in_queue': BlocksInQueueMessage,
-        'block_processor': BlockProcessorMessage
-    }
-
-    CONFIRMATION_SOLICITOR_MESSAGE_TYPES = {
-        'broadcast': BroadcastMessage,
-        'flush': FlushMessage,
-    }
-
-    ELECTION_MESSAGE_TYPES = {
-        'election_generate_vote_normal': GenerateVoteNormalMessage,
-        'election_generate_vote_final': GenerateVoteFinalMessage,
-    }
-
-    NETWORK_MESSAGE_TYPES = {
-        'confirm_ack': ConfirmAckMessage,
-        'confirm_req': ConfirmReqMessage,
-        'publish': PublishMessage,
-        'keepalive': KeepAliveMessage,
-        'asc_pull_ack': AscPullAckMessage,
-        'asc_pull_req': AscPullReqMessage,
-        'network_msg': NetworkMessage
-    }
-
-    # CHANNEL_MESSAGE_TYPES = {
-    #     'channel_sent': ConfirmAckMessageSent,
-    #     'confirm_ack_dropped': ConfirmAckMessageDropped
-    # }
-
-    MESSAGE_TYPES = {
-        # **CHANNEL_MESSAGE_TYPES,
-        **NETWORK_MESSAGE_TYPES,
-        **ACTIVE_TRANSACTION_MESSAGE_TYPES,
-        **NODE_MESSAGE_TYPES,
-        **BLOCKPROCESSOR_MESSAGE_TYPES,
-        **CONFIRMATION_SOLICITOR_MESSAGE_TYPES,
-        **ELECTION_MESSAGE_TYPES,
-        'unknown': UnknownMessage
-    }

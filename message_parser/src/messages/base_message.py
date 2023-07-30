@@ -40,6 +40,47 @@ class MessageAttributeParser:
         return json.loads(attr_value)
 
     @staticmethod
+    def extract_attributes(log_line):
+        attributes = {"json": [], "string": []}
+        log_line = re.sub(r"^\[[^\]]*\] \[[^\]]*\] \[[^\]]*\] ", "", log_line)
+
+        key, value = None, ""
+        opened_brackets, closed_brackets = 0, 0
+        is_json = False
+
+        for char in log_line:
+            if char == ' ' and value and not key:
+                value = ""
+            if char == '=' and value and not key:
+                key = value.strip()
+                value = ""
+            elif char == '{':
+                opened_brackets += 1
+                is_json = True
+                value += char
+            elif char == '}':
+                closed_brackets += 1
+                value += char
+            elif char == ',' and opened_brackets == closed_brackets:
+                if is_json:
+                    attributes["json"].append(key)
+                else:
+                    if key: attributes["string"].append(key)
+                key, value = None, ""
+                is_json = False
+            else:
+                value += char
+
+        # append the last attribute
+        if key:
+            if is_json:
+                attributes["json"].append(key)
+            else:
+                attributes["string"].append(key)
+
+        return attributes
+
+    @staticmethod
     def parse_base_attributes(line, file_name=None):
 
         response = {}
@@ -65,11 +106,12 @@ class MessageAttributeParser:
         # if log_event exists, assign it and cut it from the remainder, otherwise leave it None
         if log_event_match:
             response["log_event"] = log_event_match.group(1)
-            response["content"] = line[base_attributes_match.end():log_event_match.start()] + \
-                             line[log_event_match.end():]
+            response["content"] = str(line[base_attributes_match.end():log_event_match.start()] + \
+                             line[log_event_match.end():]).strip()
         else:
             response["log_event"] = None
-            response["content"] = line[base_attributes_match.end():]
+            response["content"] = str(
+                line[base_attributes_match.end():]).strip()
 
         return response
 
@@ -83,40 +125,22 @@ class MessageAttributeParser:
     #     return json.loads(string) if string else None
 
 
-class Message(ABC, BaseAttributesMixin):
+class BaseMessage():
 
-    def __init__(self, src_file=None):
-        self.log_timestamp = None
-        self.log_process = None
-        self.log_level = None
-        self.log_event = None
+    def __init__(self, message_dict):
+        self.__dict__.update(message_dict)
         self.class_name = self.__class__.__name__
-        self.log_file = src_file
+        self.post_init()
 
-    def parse(self, line, base_attributes=True):  # Template Method
-        self.parse_base_attributes(line, base_attributes)
-        self._parse_common(self.remainder)
-        self._parse_specific(self.remainder)
-        return self
-
-    def _parse_common(self, remainder):  # Protected method
-        try:
-            self.parse_common(remainder)
-        except Exception as ex:
-            raise ParseException(
-                f'Error parsing {self.__class__.__name__} message') from ex
-
-    @abstractmethod
-    def parse_common(self, remainder):
+    def post_init(self):
+        # This method does nothing in the base class, and is meant to be overridden in subclasses
         pass
 
-    @abstractmethod
-    def parse_specific(self, remainder):
-        pass
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
 
-    def _parse_specific(self, remainder):  # Protected method
-        try:
-            self.parse_specific(remainder)
-        except Exception as ex:
-            raise ParseException(
-                f'Error parsing {self.__class__.__name__} message') from ex
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        else:
+            raise AttributeError("No such attribute: " + name)
