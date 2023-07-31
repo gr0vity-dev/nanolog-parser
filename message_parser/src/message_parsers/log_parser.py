@@ -17,12 +17,26 @@ class LogParser():
         def channel_sent(name):
             return r'\[channel\] \[trace\] "message_sent" message={{ header={{ type="({}?)",'.format(name)
 
+        def channel_dropped(name):
+            return r'\[channel\] \[trace\] "message_dropped" message={{ header={{ type="({}?)",'.format(name)
+
         def common_pattern(name, event):
             return r'\[{}\] \[\w+\] "{}"'.format(name, event)
 
         # content is parsed dynamically (converted to json)
         message_configurations = {
             ChannelConfirmAck: channel_sent("confirm_ack"),
+            ChannelConfirmReq: channel_sent("confirm_req"),
+            ChannelPublishMessage: channel_sent("publish"),
+            ChannelKeepAliveMessage: channel_sent("keepalive"),
+            ChannelAscPullAckMessage: channel_sent("asc_pull_ack"),
+            ChannelAscPullReqMessage: channel_sent("asc_pull_req"),
+            ChannelConfirmAckDropped: channel_dropped("confirm_ack"),
+            ChannelConfirmReqDropped: channel_dropped("confirm_req"),
+            ChannelPublishMessageDropped: channel_dropped("publish"),
+            ChannelKeepAliveMessageDropped: channel_dropped("keepalive"),
+            ChannelAscPullAckMessageDropped: channel_dropped("asc_pull_ack"),
+            ChannelAscPullReqMessageDropped: channel_dropped("asc_pull_req"),
             ConfirmAckMessage: network("confirm_ack"),
             ConfirmReqMessage: network("confirm_req"),
             PublishMessage: network("publish"),
@@ -36,8 +50,7 @@ class LogParser():
             BlockProcessedMessage: common_pattern("blockprocessor", "block_processed"),
             ActiveStartedMessage: common_pattern("active_transactions", "active_started"),
             ActiveStoppedMessage: common_pattern("active_transactions", "active_stopped"),
-            ProcessConfirmedMessage: common_pattern(
-                "node", "process_confirmed")
+            ProcessConfirmedMessage: common_pattern("node", "process_confirmed"),
         }
 
         # content is parsed individually in the respective class
@@ -47,23 +60,24 @@ class LogParser():
         }
 
         # used as fallback if message_configurations is defined
-        fallback_message_configurations = {
-            BlockProcessorMessage: r'\[blockprocessor\] .*',
-            NetworkMessage: r'\[network\] .*',
-            UnknownMessage: r''
-        }
+        # fallback_message_configurations = {
+        #     BlockProcessorMessage: r'\[blockprocessor\] .*',
+        #     NetworkMessage: r'\[network\] .*',
+        # }
 
         for message_class, message_regex in message_configurations.items():
             self.parser.register_parser(
-                message_class, message_regex)
+                message_class, message_regex, parse_dynamic=True)
 
         for message_class, message_regex in static_message_configurations.items():
             self.parser.register_parser(
                 message_class, message_regex,  parse_dynamic=False)
 
-        for message_class, message_regex in fallback_message_configurations.items():
-            self.parser.register_parser(
-                message_class, message_regex,  parse_dynamic=False)
+        # for message_class, message_regex in fallback_message_configurations.items():
+        #     self.parser.register_parser(
+        #         message_class, message_regex, parse_dynamic=True)
+
+        self.parser.register_parser(UnknownMessage, r'', parse_dynamic=False)
 
     def parse_log(self, line, file_name=None):
 

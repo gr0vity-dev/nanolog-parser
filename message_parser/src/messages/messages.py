@@ -10,6 +10,50 @@ class ChannelConfirmAck(ChannelMessage):
     pass
 
 
+class ChannelConfirmReq(ChannelMessage):
+    pass
+
+
+class ChannelPublishMessage(ChannelMessage):
+    pass
+
+
+class ChannelKeepAliveMessage(ChannelMessage):
+    pass
+
+
+class ChannelAscPullAckMessage(ChannelMessage):
+    pass
+
+
+class ChannelAscPullReqMessage(ChannelMessage):
+    pass
+
+
+class ChannelConfirmAckDropped(ChannelMessage):
+    pass
+
+
+class ChannelConfirmReqDropped(ChannelMessage):
+    pass
+
+
+class ChannelPublishMessageDropped(ChannelMessage):
+    pass
+
+
+class ChannelKeepAliveMessageDropped(ChannelMessage):
+    pass
+
+
+class ChannelAscPullAckMessageDropped(ChannelMessage):
+    pass
+
+
+class ChannelAscPullReqMessageDropped(ChannelMessage):
+    pass
+
+
 class UnknownMessage(BaseMessage):
     pass
 
