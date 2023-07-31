@@ -1,5 +1,6 @@
 from src.storage.impl.sql_mixins import MapperMixin
 from src.storage.impl.sql_mapper_interface import IMapper
+from src.storage.impl.sql_normalizer import SQLDataNormalizer
 
 
 class SqlRelation:
@@ -26,6 +27,9 @@ class SqlRelations:
         self.relations = []
 
     def add_relations_from_data(self, message_mapper, data_list, table_name, key_for_string=None):
+
+        data_list = SQLDataNormalizer.normalize_sql(table_name, data_list)
+
         # if the data_list is not a list (string or dict), make it a list
         if not isinstance(data_list, list):
             data_list = [data_list]
@@ -36,6 +40,7 @@ class SqlRelations:
         return self  # return the instance for chaining
 
     def add_relation(self, message_mapper, data, table_name, key_for_string=None):
+
         if isinstance(data, dict):
             self.create_relation(message_mapper, data, table_name)
         elif isinstance(data, str) and key_for_string is not None:

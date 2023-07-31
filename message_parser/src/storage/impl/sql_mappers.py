@@ -2,7 +2,6 @@ import json
 from src.storage.impl.sql_mixins import *
 from src.storage.impl.sql_mapper_interface import IMapper
 from src.storage.impl.sql_relation import SqlRelations
-from src.storage.impl.sql_normalizer import SQLDataNormalizer
 
 
 class MessageMapper(MessageMixin, IMapper):
@@ -85,7 +84,7 @@ class BlockProcessedMessageMapper(MessageMixin, IMapper):
                                              ('forced', 'bool')]
 
     def get_related_entities(self):
-        block = SQLDataNormalizer.normalize_block(self.message.block)
+        block = self.message.block
         self.relations.add_relations_from_data(self, block, 'blocks')
         return self.relations.get_mappers()
 
@@ -155,10 +154,8 @@ class ActiveStartedMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
-        blocks = SQLDataNormalizer.normalize_block(
-            self.message.election["blocks"])
-        votes = SQLDataNormalizer.normalize_vote(
-            self.message.election["votes"])
+        blocks = self.message.election["blocks"]
+        votes = self.message.election["votes"]
         tally = self.message.election["tally"]
 
         self.relations.add_relations_from_data(self, blocks, 'blocks')
@@ -198,10 +195,8 @@ class ActiveStoppedMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
-        blocks = SQLDataNormalizer.normalize_block(
-            self.message.election["blocks"])
-        votes = SQLDataNormalizer.normalize_vote(
-            self.message.election["votes"])
+        blocks = self.message.election["blocks"]
+        votes = self.message.election["votes"]
         tally = self.message.election["tally"]
 
         self.relations.add_relations_from_data(self, blocks, 'blocks')
@@ -303,8 +298,8 @@ class ChannelConfirmAckMapper(HeaderMapper):
 
     def get_related_entities(self):
         super().get_related_entities()
-        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
-        channel = SQLDataNormalizer.normalize_channel(self.message.channel)
+        vote = self.message.message["vote"]
+        channel = self.message.channel
 
         self.relations.add_relations_from_data(self, vote, 'votes')
         self.relations.add_relations_from_data(self, channel, 'channels')
@@ -329,7 +324,7 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
 
     def get_related_entities(self):
         super().get_related_entities()
-        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
+        vote = self.message.message["vote"]
 
         self.relations.add_relations_from_data(self, vote, 'votes')
 
@@ -340,8 +335,7 @@ class PublishMessageMapper(NetworkMessageMapper):
 
     def get_related_entities(self):
         super().get_related_entities()
-        block = SQLDataNormalizer.normalize_block(
-            self.message.message["block"])
+        block = self.message.message["block"]
         self.relations.add_relations_from_data(self, block, 'blocks')
         return self.relations.get_mappers()
 
@@ -370,8 +364,8 @@ class ASCPullAckMessageMapper(NetworkMessageMapper):
 
     def get_related_entities(self):
         super().get_related_entities()
-        self.relations.add_relations_from_data(
-            self, self.message.message["blocks"], 'blocks')
+        blocks = self.message.message["blocks"]
+        self.relations.add_relations_from_data(self, blocks, 'blocks')
         return self.relations.get_mappers()
 
 
@@ -452,7 +446,8 @@ class ProcessConfirmedMessageMapper(MessageMixin, IMapper):
     relations = SqlRelations()
 
     def get_related_entities(self):
+        block = self.message.block
 
-        block = SQLDataNormalizer.normalize_block(self.message.block)
-        self.relations.add_relations_from_data(self, block, 'blocks')
+        self.relations.add_relations_from_data(
+            self, block, 'blocks')
         return self.relations.get_mappers()

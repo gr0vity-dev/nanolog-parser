@@ -1,6 +1,20 @@
 class SQLDataNormalizer:
 
     @staticmethod
+    def normalize_sql(table, entries):
+        switcher = {
+            "blocks": SQLDataNormalizer.normalize_block,
+            "votes": SQLDataNormalizer.normalize_vote,
+            "channels": SQLDataNormalizer.normalize_channel,
+        }
+
+        normalize_function = switcher.get(table)
+
+        if normalize_function:
+            return normalize_function(entries)
+        return entries
+
+    @staticmethod
     def adjust_max_timestamp(timestamp):
         if timestamp == 18446744073709551615:
             return -1

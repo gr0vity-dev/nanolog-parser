@@ -11,6 +11,31 @@ import json
 class MessageAttributeParser:
 
     @staticmethod
+    def _add_quotes_to_keys_fast(logline):
+        words = logline.split('=')
+        for i in range(len(words) - 1):
+            last_space = words[i].rfind(' ')
+            if last_space != -1:
+                pre_space = words[i][:last_space]
+                post_space = words[i][last_space+1:]
+                words[i] = f'{pre_space} "{post_space}"'
+            else:
+                words[i] = f'"{words[i]}"'
+        return ':'.join(words)
+
+    @staticmethod
+    def extract_attributes(logline):
+        # regex = re.compile(r"(\b\w+\b)(?=\=)")
+        # # Put quotes around matched words
+        # json_compatible = re.sub(regex, r'"\1"', logline).replace("=", ":")
+        json_compatible = MessageAttributeParser._add_quotes_to_keys_fast(
+            logline)
+        first_key = re.search(r'"([^"]+)":', json_compatible).group(1)
+        json_string = '{"' + first_key + "\":" + \
+            json_compatible.split(f'"{first_key}":', 1)[1].strip() + '}'
+        return json.loads(json_string)
+
+    @staticmethod
     def parse_attribute(line, attribute):
         regex = f'{attribute}="(?P<{attribute}>[^"]+)"'
         match = re.search(regex, line)
@@ -20,14 +45,17 @@ class MessageAttributeParser:
     @staticmethod
     def parse_json_attribute(line, attribute):
         attr_location = line.find(f'{attribute}=')
-        if attr_location == -1: return None
+        if attr_location == -1:
+            return None
 
         open_count = 0
         close_count = 0
         attr_value = ''
         for char in line[attr_location + len(attribute) + 1:]:
-            if char == '{': open_count += 1
-            if char == '}': close_count += 1
+            if char == '{':
+                open_count += 1
+            if char == '}':
+                close_count += 1
             attr_value += char
             if open_count != 0 and open_count == close_count:
                 break
@@ -39,46 +67,47 @@ class MessageAttributeParser:
 
         return json.loads(attr_value)
 
-    @staticmethod
-    def extract_attributes(log_line):
-        attributes = {"json": [], "string": []}
-        log_line = re.sub(r"^\[[^\]]*\] \[[^\]]*\] \[[^\]]*\] ", "", log_line)
+    # @staticmethod
+    # def extract_attributes(log_line):
+    #     attributes = {"json": [], "string": []}
+    #     log_line = re.sub(r"^\[[^\]]*\] \[[^\]]*\] \[[^\]]*\] ", "", log_line)
 
-        key, value = None, ""
-        opened_brackets, closed_brackets = 0, 0
-        is_json = False
+    #     key, value = None, ""
+    #     opened_brackets, closed_brackets = 0, 0
+    #     is_json = False
 
-        for char in log_line:
-            if char == ' ' and value and not key:
-                value = ""
-            if char == '=' and value and not key:
-                key = value.strip()
-                value = ""
-            elif char == '{':
-                opened_brackets += 1
-                is_json = True
-                value += char
-            elif char == '}':
-                closed_brackets += 1
-                value += char
-            elif char == ',' and opened_brackets == closed_brackets:
-                if is_json:
-                    attributes["json"].append(key)
-                else:
-                    if key: attributes["string"].append(key)
-                key, value = None, ""
-                is_json = False
-            else:
-                value += char
+    #     for char in log_line:
+    #         if char == ' ' and value and not key:
+    #             value = ""
+    #         if char == '=' and value and not key:
+    #             key = value.strip()
+    #             value = ""
+    #         elif char == '{':
+    #             opened_brackets += 1
+    #             is_json = True
+    #             value += char
+    #         elif char == '}':
+    #             closed_brackets += 1
+    #             value += char
+    #         elif char == ',' and opened_brackets == closed_brackets:
+    #             if is_json:
+    #                 attributes["json"].append(key)
+    #             else:
+    #                 if key:
+    #                     attributes["string"].append(key)
+    #             key, value = None, ""
+    #             is_json = False
+    #         else:
+    #             value += char
 
-        # append the last attribute
-        if key:
-            if is_json:
-                attributes["json"].append(key)
-            else:
-                attributes["string"].append(key)
+    #     # append the last attribute
+    #     if key:
+    #         if is_json:
+    #             attributes["json"].append(key)
+    #         else:
+    #             attributes["string"].append(key)
 
-        return attributes
+    #     return attributes
 
     @staticmethod
     def parse_base_attributes(line, file_name=None):
@@ -106,8 +135,8 @@ class MessageAttributeParser:
         # if log_event exists, assign it and cut it from the remainder, otherwise leave it None
         if log_event_match:
             response["log_event"] = log_event_match.group(1)
-            response["content"] = str(line[base_attributes_match.end():log_event_match.start()] + \
-                             line[log_event_match.end():]).strip()
+            response["content"] = str(line[base_attributes_match.end():log_event_match.start()] +
+                                      line[log_event_match.end():]).strip()
         else:
             response["log_event"] = None
             response["content"] = str(

@@ -276,7 +276,7 @@ def test_blockprocessor_message_parsing():
         'signature'] == "E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D"
     assert log.block['work'] == 10530317739669255306
     assert log.result == "gap_previous"
-    assert log.forced is None
+    assert log.forced == False
 
 
 def test_filename_parsing():
