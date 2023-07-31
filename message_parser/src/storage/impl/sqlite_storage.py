@@ -13,15 +13,14 @@ class SQLiteStorage:
             'LinkMapper': LinkMapper
         }
         self.mapper_registry = {
-            **base_mappers, 'BlockProcessedMessage':
-            BlockProcessedMessageMapper,
+            **base_mappers, 'BlockProcessedMessage': BlockProcessedMessageMapper,
             'ProcessedBlocksMessage': ProcessedBlocksMessageMapper,
             'BlocksInQueueMessage': BlocksInQueueMessageMapper,
             'BroadcastMessage': BroadcastMessageMapper,
             'FlushMessage': FlushMessageMapper,
-            'GenerateVoteNormalMessage': GenerateVoteNormalMessageMapper,
-            'GenerateVoteFinalMessage': GenerateVoteFinalMessageMapper,
-            'NodeProcessConfirmedMessage': NodeProcessConfirmedMessageMapper,
+            'ElectionGenerateVoteNormalMessage': ElectionGenerateVoteNormalMessageMapper,
+            'ElectionGenerateVoteFinalMessage': ElectionGenerateVoteFinalMessageMapper,
+            'ProcessConfirmedMessage': ProcessConfirmedMessageMapper,
             'ActiveStartedMessage': ActiveStartedMessageMapper,
             'ActiveStoppedMessage': ActiveStoppedMessageMapper,
             'ConfirmAckMessage': ConfirmAckMessageMapper,

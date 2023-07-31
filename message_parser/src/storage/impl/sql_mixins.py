@@ -78,3 +78,22 @@ class NetworkMessageMixin(MessageMixin):
             ('extensions', 'integer'),
             ('action', 'text'),
         ]
+
+
+class MessageHeaderMixin(MessageMixin):
+
+    def to_dict(self):
+        data = super().to_dict()
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [
+            ('message_type', 'text'),
+            ('network', 'text'),
+            ('network_int', 'integer'),
+            ('version', 'integer'),
+            ('version_min', 'integer'),
+            ('version_max', 'integer'),
+            ('extensions', 'integer'),
+            ('action', 'text'),
+        ]

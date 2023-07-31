@@ -9,161 +9,85 @@ class MessageMapper(MessageMixin, IMapper):
     pass
 
 
-class NetworkMessageMapper(NetworkMessageMixin, IMapper):
-    pass
+# class NetworkMessageMapper(NetworkMessageMixin, IMapper):
+#     pass
+
+# class ConfirmAckMessageMapper(NetworkMessageMixin, IMapper):
+
+#     def to_dict(self):
+#         data = super().to_dict()
+#         self.message.timestamp = SQLDataNormalizer.adjust_max_timestamp(
+#             self.message.timestamp)
+#         data.update({
+#             'account': self.message.account,
+#             'timestamp': self.message.timestamp,
+#             'hash_count': self.message.hash_count,
+#             'vote_type': self.message.vote_type,
+#         })
+#         return data
+
+#     def get_table_schema(self):
+#         return super().get_table_schema() + [
+#             ('account', 'text'),
+#             ('timestamp', 'integer'),
+#             ('hash_count', 'integer'),
+#             ('vote_type', 'text'),
+#         ]
+
+#     def get_related_entities(self):
+#         relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
+#         return relations.get_mappers()
 
 
-class ConfirmAckMessageMapper(NetworkMessageMixin, IMapper):
+# class PublishMessageMapper(NetworkMessageMixin, IMapper):
 
-    def to_dict(self):
-        data = super().to_dict()
-        self.message.timestamp = SQLDataNormalizer.adjust_max_timestamp(
-            self.message.timestamp)
-        data.update({
-            'account': self.message.account,
-            'timestamp': self.message.timestamp,
-            'hash_count': self.message.hash_count,
-            'vote_type': self.message.vote_type,
-        })
-        return data
+#     def to_dict(self):
+#         data = super().to_dict()
+#         data.update({
+#             'block_type': self.message.block_type,
+#             'hash': self.message.hash,
+#             'account': self.message.account,
+#             'previous': self.message.previous,
+#             'representative': self.message.representative,
+#             'balance': self.message.balance,
+#             'link': self.message.link,
+#             'signature': self.message.signature
+#         })
+#         return data
 
-    def get_table_schema(self):
-        return super().get_table_schema() + [
-            ('account', 'text'),
-            ('timestamp', 'integer'),
-            ('hash_count', 'integer'),
-            ('vote_type', 'text'),
-        ]
-
-    def get_related_entities(self):
-        relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
-        return relations.get_mappers()
-
-
-class ConfirmReqMessageMapper(NetworkMessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update({
-            'root_count': self.message.root_count,
-        })
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [
-            ('root_count', 'integer'),
-        ]
-
-    def get_related_entities(self):
-        relations = SqlRelations(self, self.message.roots, 'roots')
-        return relations.get_mappers()
-
-
-class PublishMessageMapper(NetworkMessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update({
-            'block_type': self.message.block_type,
-            'hash': self.message.hash,
-            'account': self.message.account,
-            'previous': self.message.previous,
-            'representative': self.message.representative,
-            'balance': self.message.balance,
-            'link': self.message.link,
-            'signature': self.message.signature
-        })
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [('block_type', 'text'),
-                                             ('hash', 'text'),
-                                             ('account', 'text'),
-                                             ('previous', 'text'),
-                                             ('representative', 'text'),
-                                             ('balance', 'text'),
-                                             ('link', 'text'),
-                                             ('signature', 'text')]
-
-
-class KeepAliveMessageMapper(NetworkMessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema()
-
-    def get_related_entities(self):
-        relations = SqlRelations(self, self.message.peers, 'peers', 'peer')
-        return relations.get_mappers()
-
-
-class ASCPullAckMessageMapper(NetworkMessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update({'id': self.message.id})
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [('id', 'text')]
-
-    def get_related_entities(self):
-        relations = SqlRelations(self, self.message.blocks, 'blocks')
-        return relations.get_mappers()
-
-
-class ASCPullReqMessageMapper(NetworkMessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update({
-            'id': self.message.id,
-            'start': self.message.start,
-            'start_type': self.message.start_type,
-            'count': self.message.count
-        })
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [('id', 'text'), ('start', 'text'),
-                                             ('start_type', 'text'),
-                                             ('count', 'integer')]
+#     def get_table_schema(self):
+#         return super().get_table_schema() + [('block_type', 'text'),
+#                                              ('hash', 'text'),
+#                                              ('account', 'text'),
+#                                              ('previous', 'text'),
+#                                              ('representative', 'text'),
+#                                              ('balance', 'text'),
+#                                              ('link', 'text'),
+#                                              ('signature', 'text')]
 
 
 class BlockProcessedMessageMapper(MessageMixin, IMapper):
+
+    relations = SqlRelations()
 
     def to_dict(self):
         data = super().to_dict()
         data.update({
             'result': self.message.result,
-            'block_type': self.message.block_type,
-            'hash': self.message.hash,
-            'account': self.message.account,
-            'previous': self.message.previous,
-            'representative': self.message.representative,
-            'balance': self.message.balance,
-            'link': self.message.link,
-            'signature': self.message.signature,
-            'work': self.message.work,
+            'hash': self.message.block["hash"],
             'forced': self.message.forced
         })
         return data
 
     def get_table_schema(self):
         return super().get_table_schema() + [('result', 'text'),
-                                             ('block_type', 'text'),
                                              ('hash', 'text'),
-                                             ('account', 'text'),
-                                             ('previous', 'text'),
-                                             ('representative', 'text'),
-                                             ('balance', 'text'),
-                                             ('link', 'text'),
-                                             ('signature', 'text'),
-                                             ('work', 'text'),
                                              ('forced', 'bool')]
+
+    def get_related_entities(self):
+        block = SQLDataNormalizer.normalize_block(self.message.block)
+        self.relations.add_relations_from_data(self, block, 'blocks')
+        return self.relations.get_mappers()
 
 
 class ProcessedBlocksMessageMapper(MessageMixin, IMapper):
@@ -200,85 +124,90 @@ class BlocksInQueueMessageMapper(MessageMixin, IMapper):
                                              ('forced_blocks', 'int')]
 
 
-class NodeProcessConfirmedMessageMapper(MessageMixin, IMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update({
-            'block_type': self.message.block_type,
-            'hash': self.message.hash,
-            'account': self.message.account,
-            'previous': self.message.previous,
-            'representative': self.message.representative,
-            'balance': self.message.balance,
-            'link': self.message.link,
-            'signature': self.message.signature,
-            'work': self.message.work
-        })
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [('block_type', 'text'),
-                                             ('hash', 'text'),
-                                             ('account', 'text'),
-                                             ('previous', 'text'),
-                                             ('representative', 'text'),
-                                             ('balance', 'text'),
-                                             ('link', 'text'),
-                                             ('signature', 'text'),
-                                             ('work', 'text')]
-
-    def get_related_entities(self):
-
-        #Nested dicts can't be dynamcailly mapped
-        self.message.sideband["details"] = str(
-            self.message.sideband["details"])
-
-        relations = SqlRelations(self, self.message.sideband, 'sideband')
-        return relations.get_mappers()
-
-
 class ActiveStartedMessageMapper(MessageMixin, IMapper):
 
+    def __init__(self, message):
+        super().__init__(message)
+        self.relations = SqlRelations()
+
     def to_dict(self):
         data = super().to_dict()
         data.update({
-            'root': self.message.root,
-            'hash': self.message.hash,
-            'behaviour': self.message.behaviour,
+            'root': self.message.election["root"],
+            'behaviour': self.message.election["behaviour"],
+            'state': self.message.election["state"],
+            'confirmed': self.message.election["confirmed"],
+            'winner': self.message.election["winner"],
+            'tally_amount': self.message.election["tally_amount"],
+            'final_tally_amount': self.message.election["final_tally_amount"],
         })
         return data
 
     def get_table_schema(self):
-        return super().get_table_schema() + [('root', 'text'),
-                                             ('hash', 'text'),
-                                             ('behaviour', 'text')]
+        return super().get_table_schema() + [
+            ('root', 'text'),
+            ('behaviour', 'text'),
+            ('state', 'text'),
+            ('confirmed', 'boolean'),
+            ('winner', 'text'),
+            ('tally_amount', 'text'),  # or 'bigint' if the amount fits
+            ('final_tally_amount', 'text'),  # or 'bigint' if the amount fits
+        ]
+
+    def get_related_entities(self):
+        blocks = SQLDataNormalizer.normalize_block(
+            self.message.election["blocks"])
+        votes = SQLDataNormalizer.normalize_vote(
+            self.message.election["votes"])
+        tally = self.message.election["tally"]
+
+        self.relations.add_relations_from_data(self, blocks, 'blocks')
+        self.relations.add_relations_from_data(self, votes, 'votes')
+        self.relations.add_relations_from_data(self, tally, 'tally')
+        return self.relations.get_mappers()
 
 
 class ActiveStoppedMessageMapper(MessageMixin, IMapper):
 
+    def __init__(self, message):
+        super().__init__(message)
+        self.relations = SqlRelations()
+
     def to_dict(self):
         data = super().to_dict()
         data.update({
-            'root': self.message.root,
-            'behaviour': self.message.behaviour,
-            'confirmed': self.message.confirmed,
+            'root': self.message.election["root"],
+            'behaviour': self.message.election["behaviour"],
+            'state': self.message.election["state"],
+            'confirmed': self.message.election["confirmed"],
+            'winner': self.message.election["winner"],
+            'tally_amount': self.message.election["tally_amount"],
+            'final_tally_amount': self.message.election["final_tally_amount"],
         })
         return data
 
     def get_table_schema(self):
-        return super().get_table_schema() + [('root', 'text'),
-                                             ('behaviour', 'text'),
-                                             ('confirmed', 'boolean')]
+        return super().get_table_schema() + [
+            ('root', 'text'),
+            ('behaviour', 'text'),
+            ('state', 'text'),
+            ('confirmed', 'boolean'),
+            ('winner', 'text'),
+            ('tally_amount', 'text'),  # or 'bigint' if the amount fits
+            ('final_tally_amount', 'text'),  # or 'bigint' if the amount fits
+        ]
 
     def get_related_entities(self):
-        SQLDataNormalizer.normalize_block_fields(self.message.blocks)
-        SQLDataNormalizer.normalize_vote_fields(self.message.votes)
+        blocks = SQLDataNormalizer.normalize_block(
+            self.message.election["blocks"])
+        votes = SQLDataNormalizer.normalize_vote(
+            self.message.election["votes"])
+        tally = self.message.election["tally"]
 
-        relations = SqlRelations(self, self.message.blocks, 'blocks')
-        relations += SqlRelations(self, self.message.votes, 'votes')
-        relations += SqlRelations(self, self.message.votes, 'tally')
-        return relations.get_mappers()
+        self.relations.add_relations_from_data(self, blocks, 'blocks')
+        self.relations.add_relations_from_data(self, votes, 'votes')
+        self.relations.add_relations_from_data(self, tally, 'tally')
+        return self.relations.get_mappers()
 
 
 class BroadcastMessageMapper(MessageMixin, IMapper):
@@ -296,7 +225,7 @@ class BroadcastMessageMapper(MessageMixin, IMapper):
                                              ('hash', 'text')]
 
 
-class GenerateVoteNormalMessageMapper(MessageMixin, IMapper):
+class ElectionGenerateVoteNormalMessageMapper(MessageMixin, IMapper):
 
     def to_dict(self):
         data = super().to_dict()
@@ -311,7 +240,7 @@ class GenerateVoteNormalMessageMapper(MessageMixin, IMapper):
                                              ('hash', 'text')]
 
 
-class GenerateVoteFinalMessageMapper(MessageMixin, IMapper):
+class ElectionGenerateVoteFinalMessageMapper(MessageMixin, IMapper):
 
     def to_dict(self):
         data = super().to_dict()
@@ -339,13 +268,164 @@ class UnknownMessageMapper(MessageMixin, IMapper):
         return super().get_table_schema() + [('content', 'text')]
 
 
-class FlushMessageMapper(MessageMixin, IMapper):
+class HeaderMapper(MessageMixin, IMapper):
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.relations = SqlRelations()
+        # we can't add the header relation during init because
+
+    def get_related_entities(self):
+        header = self.message.message["header"]
+        self.relations.add_relations_from_data(self, header, 'headers')
+
+        return self.relations.get_mappers()
+
+
+class ChannelMessageMapper(HeaderMapper):
+    pass
+
+
+class ChannelConfirmAckMapper(HeaderMapper):
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.relations = SqlRelations()
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update(
+            {'vote_count': len(self.message.message["vote"]["hashes"])})
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('vote_count', 'int')]
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
+        channel = SQLDataNormalizer.normalize_channel(self.message.channel)
+
+        self.relations.add_relations_from_data(self, vote, 'votes')
+        self.relations.add_relations_from_data(self, channel, 'channels')
+
+        return self.relations.get_mappers()
+
+
+class NetworkMessageMapper(HeaderMapper):
+    pass
+
+
+class ConfirmAckMessageMapper(NetworkMessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update(
+            {'vote_count': len(self.message.message["vote"]["hashes"])})
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('vote_count', 'int')]
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
+
+        self.relations.add_relations_from_data(self, vote, 'votes')
+
+        return self.relations.get_mappers()
+
+
+class PublishMessageMapper(NetworkMessageMapper):
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        block = SQLDataNormalizer.normalize_block(
+            self.message.message["block"])
+        self.relations.add_relations_from_data(self, block, 'blocks')
+        return self.relations.get_mappers()
+
+
+class KeepAliveMessageMapper(NetworkMessageMapper):
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        self.relations.add_relations_from_data(
+            self, self.message.message["peers"], 'peers', 'peer')
+        return self.relations.get_mappers()
+
+
+class ASCPullAckMessageMapper(NetworkMessageMapper):
 
     def to_dict(self):
         data = super().to_dict()
         data.update({
-            'root_count': self.message.confirm_req.root_count,
+            'id': str(self.message.message["id"]),
+            'type': self.message.message["type"]
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('id', 'text'), ('type', 'text')]
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        self.relations.add_relations_from_data(
+            self, self.message.message["blocks"], 'blocks')
+        return self.relations.get_mappers()
+
+
+class ASCPullReqMessageMapper(NetworkMessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'id': str(self.message.message["id"]),
+            'start': self.message.message["start"],
+            'start_type': self.message.message["start_type"],
+            'count': self.message.message["count"]
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [('id', 'text'), ('start', 'text'),
+                                             ('start_type', 'text'),
+                                             ('count', 'integer')]
+
+
+class ConfirmReqMessageMapper(NetworkMessageMapper):
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
+            'root_count': len(self.message.message["roots"])
+        })
+        return data
+
+    def get_table_schema(self):
+        return super().get_table_schema() + [
+            ('root_count', 'integer'),
+        ]
+
+    def get_related_entities(self):
+        super().get_related_entities()
+        self.relations.add_relations_from_data(
+            self, self.message.message["roots"], 'roots')
+        return self.relations.get_mappers()
+
+
+class FlushMessageMapper(MessageMixin, IMapper):
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.relations = SqlRelations()
+        # we can't add the header relation during init because
+
+    def to_dict(self):
+        data = super().to_dict()
+        data.update({
             'channel': self.message.channel,
+            'root_count': len(self.message.confirm_req["roots"])
         })
         return data
 
@@ -356,35 +436,23 @@ class FlushMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
-        relations = SqlRelations(self, self.message.confirm_req.roots, 'roots')
-        return relations.get_mappers()
+        header = self.message.confirm_req["header"]
+        block = self.message.confirm_req["block"]
+        roots = self.message.confirm_req["roots"]
+
+        self.relations.add_relations_from_data(self, header, 'headers')
+        self.relations.add_relations_from_data(self, roots, 'roots')
+        if block:
+            self.relations.add_relations_from_data(self, block, 'blocks')
+        return self.relations.get_mappers()
 
 
-class ChannelMessageMapper(MessageMixin, IMapper):
+class ProcessConfirmedMessageMapper(MessageMixin, IMapper):
 
-    def to_dict(self):
-        data = super().to_dict()
-        return data
-
-    def get_table_schema(self):
-        return super().get_table_schema() + [('vote_count', 'int')]
+    relations = SqlRelations()
 
     def get_related_entities(self):
-        header = self.message.message["header"]
-        vote = SQLDataNormalizer.normalize_vote(self.message.message["vote"])
-        channel = SQLDataNormalizer.normalize_channel(self.message.channel)
 
-        relations = SqlRelations(self, header, 'headers')
-        relations += SqlRelations(self, vote, 'votes')
-        relations += SqlRelations(self, channel, 'channels')
-
-        return relations.get_mappers()
-
-
-class ChannelConfirmAckMapper(ChannelMessageMapper):
-
-    def to_dict(self):
-        data = super().to_dict()
-        data.update(
-            {'vote_count': len(self.message.message["vote"]["hashes"])})
-        return data
+        block = SQLDataNormalizer.normalize_block(self.message.block)
+        self.relations.add_relations_from_data(self, block, 'blocks')
+        return self.relations.get_mappers()
