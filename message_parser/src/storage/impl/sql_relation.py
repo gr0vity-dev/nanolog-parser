@@ -25,10 +25,11 @@ class SqlRelations:
 
     def __init__(self):
         self.relations = []
+        self.normalizer = SQLDataNormalizer()
 
     def add_relations_from_data(self, message_mapper, data_list, table_name, key_for_string=None):
 
-        data_list = SQLDataNormalizer.normalize_sql(table_name, data_list)
+        data_list = self.normalizer.normalize_sql(table_name, data_list)
 
         # if the data_list is not a list (string or dict), make it a list
         if not isinstance(data_list, list):

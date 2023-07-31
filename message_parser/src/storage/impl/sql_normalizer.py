@@ -1,19 +1,48 @@
-class SQLDataNormalizer:
+from abc import ABC, abstractmethod
 
-    @staticmethod
-    def normalize_sql(table, entries):
-        switcher = {
-            "blocks": SQLDataNormalizer.normalize_block,
-            "votes": SQLDataNormalizer.normalize_vote,
-            "channels": SQLDataNormalizer.normalize_channel,
+
+class SQLDataNormalizer:
+    def __init__(self):
+        self._normalizers = {
+            "blocks": BlockNormalizer(),
+            "votes": VoteNormalizer(),
+            "channels": ChannelNormalizer(),
         }
 
-        normalize_function = switcher.get(table)
+    def normalize_sql(self, table, entries):
+        normalizer = self._normalizers.get(table)
+        return normalizer.normalize(entries) if normalizer else entries
 
-        if normalize_function:
-            return normalize_function(entries)
-        return entries
 
+class NormalizerInterface(ABC):
+
+    @abstractmethod
+    def normalize(self, data):
+        pass
+
+
+class BlockNormalizer(NormalizerInterface):
+    @staticmethod
+    def remove_sideband(block):
+        if "sideband" in block:
+            block.pop("sideband")
+        return block
+
+    @staticmethod
+    def stringify_work(block):
+        block["work"] = str(block["work"])
+        return block
+
+    def normalize(self, blocks):
+        if not isinstance(blocks, list):
+            blocks = [blocks]
+        for block in blocks:
+            block = self.remove_sideband(block)
+            block = self.stringify_work(block)
+        return blocks
+
+
+class VoteNormalizer(NormalizerInterface):
     @staticmethod
     def adjust_max_timestamp(timestamp):
         if timestamp == 18446744073709551615:
@@ -21,100 +50,67 @@ class SQLDataNormalizer:
         return timestamp
 
     @staticmethod
-    def normalize_block_fields(blocks):
-
-        def edit_block(block):
-            if "sideband" in block:
-                # block["sideband"] = str(block["sideband"])
-                block.pop("sideband")
-            block["work"] = str(block["work"])
-
-        if isinstance(blocks, list):
-            for block in blocks:
-                edit_block(block)
-        else:
-            edit_block(blocks)
+    def update_hash(vote, hash_value):
+        vote["hash"] = hash_value
+        return vote
 
     @staticmethod
-    def normalize_vote_fields(votes):
-
-        def edit_vote(vote):
-            vote["timestamp"] = SQLDataNormalizer.adjust_max_timestamp(
-                vote["timestamp"])
-            if vote["timestamp"] == -1:
-                vote["vote_type"] = "final"
-            else:
-                vote["vote_type"] = "normal"
-
-        if isinstance(votes, list):
-            for vote in votes:
-                edit_vote(vote)
-        else:
-            edit_vote(votes)
+    def remove_hashes(vote):
+        if "hashes" in vote:
+            vote.pop("hashes")
+        return vote
 
     @staticmethod
-    def normalize_vote(votes):
+    def adjust_timestamp(vote):
+        vote["timestamp"] = VoteNormalizer.adjust_max_timestamp(
+            vote["timestamp"])
+        return vote
 
-        def edit_vote(vote, hash_value):
-            vote["hash"] = hash_value
-            if "hashes" in vote:
-                vote.pop("hashes")
-            vote["timestamp"] = SQLDataNormalizer.adjust_max_timestamp(
-                vote["timestamp"])
-            if vote["timestamp"] == -1:
-                vote["vote_type"] = "final"
-            else:
-                vote["vote_type"] = "normal"
-            return vote
+    @staticmethod
+    def set_vote_type(vote):
+        vote["vote_type"] = "final" if vote["timestamp"] == -1 else "normal"
+        return vote
 
-        normalized_votes = []
-        if isinstance(votes, list):
-            for vote in votes:
-                if "hashes" in vote:
-                    for hash_value in vote['hashes']:
-                        normalized_vote = edit_vote(vote.copy(), hash_value)
-                        normalized_votes.append(normalized_vote)
-                else:
-                    normalized_vote = edit_vote(vote, vote["hash"])
-                    normalized_votes.append(vote)
-        else:
-            if "hashes" in votes:
-                for hash_value in votes['hashes']:
-                    normalized_vote = edit_vote(votes.copy(), hash_value)
-                    normalized_votes.append(normalized_vote)
-            else:
-                normalized_vote = edit_vote(votes, votes["hash"])
-                normalized_votes.append(normalized_vote)
+    @staticmethod
+    def set_vote_time(vote):
+        if "time" in vote:
+            vote.pop("time")
+        return vote
+        # vote["time"] = vote["time"] if "time" in vote else 0
+        # return vote
+
+    def normalize(self, votes):
+        if not isinstance(votes, list):
+            votes = [votes]
+
+        normalized_votes = [
+            self.normalize_individual_vote(vote, hash_value)
+            for vote in votes
+            for hash_value in (vote['hashes'] if "hashes" in vote else [vote["hash"]])
+        ]
 
         return normalized_votes
 
+    def normalize_individual_vote(self, vote, hash_value):
+        vote = self.update_hash(vote.copy(), hash_value)
+        vote = self.remove_hashes(vote)
+        vote = self.adjust_timestamp(vote)
+        vote = self.set_vote_type(vote)
+        vote = self.set_vote_time(vote)
+        return vote
+
+
+class ChannelNormalizer(NormalizerInterface):
     @staticmethod
-    def normalize_channel(channels):
+    def remove_socket(channel):
+        channel.pop("socket")
+        return channel
 
-        def edit_channel(channel):
-            channel.pop("socket")
+    def normalize(self, channels):
+        if not isinstance(channels, list):
+            channels = [channels]
 
-        if isinstance(channels, list):
-            for channel in channels:
-                edit_channel(channel)
-        else:
-            edit_channel(channels)
+        for channel in channels:
+            channel = self.remove_socket(channel)
 
         return channels
-
-    @staticmethod
-    def normalize_block(blocks):
-
-        def edit_block(block):
-            if "sideband" in block:
-                # block["sideband"] = str(block["sideband"])
-                block.pop("sideband")
-            block["work"] = str(block["work"])
-
-        if isinstance(blocks, list):
-            for block in blocks:
-                edit_block(block)
-        else:
-            edit_block(blocks)
-
-        return blocks
