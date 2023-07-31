@@ -34,3 +34,11 @@ class IMapper(ABC):
     @abstractmethod
     def handle_table(self):
         pass
+
+    @abstractmethod
+    def get_unique_constraints(self):
+        pass
+
+    @abstractmethod
+    def get_indices(self):
+        pass

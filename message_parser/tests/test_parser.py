@@ -423,7 +423,7 @@ def test_blockprocessor_message_without_parser():
     line = "[2023-07-20 08:41:12.300] [blockprocessor] [info] Message_without_a_specific_parser"
     log = MessageFactory.create_message(line)
 
-    assert isinstance(log, BlockProcessorMessage)
+    assert isinstance(log, UnknownMessage)
     assert log.content == "Message_without_a_specific_parser"
 
 

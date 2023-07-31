@@ -84,11 +84,17 @@ class LinkMapper(MapperMixin, IMapper):
         return True
 
     def convert_related_ids(self, id_mappings):
-        self.data['relation_id'] = id_mappings[self.data['relation_id']]
+        if self.data['relation_id'] in id_mappings:
+            self.data['relation_id'] = id_mappings[self.data['relation_id']]
         return self.to_dict()
 
+    def get_indices(self):
+        # Create an index for each column
+        return [(column, ) for column, _ in self.get_table_schema()]
 
 # HashableMapper
+
+
 class HashableMapper(MapperMixin, IMapper):
 
     def __init__(self, data, table_name):
@@ -112,3 +118,9 @@ class HashableMapper(MapperMixin, IMapper):
             # else:  # default to text if it's not int or float
             schema.append((key, 'text'))
         return schema
+
+    def get_unique_constraints(self):
+        # Unique constraint for all columns, excluding 'id'
+        keys = [column for column, _ in self.get_table_schema()
+                if column != 'id']
+        return keys

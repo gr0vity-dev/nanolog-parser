@@ -67,8 +67,6 @@ class MessageMapper(MessageMixin, IMapper):
 
 class BlockProcessedMessageMapper(MessageMixin, IMapper):
 
-    relations = SqlRelations()
-
     def to_dict(self):
         data = super().to_dict()
         data.update({
@@ -84,9 +82,10 @@ class BlockProcessedMessageMapper(MessageMixin, IMapper):
                                              ('forced', 'bool')]
 
     def get_related_entities(self):
+        relations = SqlRelations()
         block = self.message.block
-        self.relations.add_relations_from_data(self, block, 'blocks')
-        return self.relations.get_mappers()
+        relations.add_relations_from_data(self, block, 'blocks')
+        return relations.get_mappers()
 
 
 class ProcessedBlocksMessageMapper(MessageMixin, IMapper):
@@ -125,10 +124,6 @@ class BlocksInQueueMessageMapper(MessageMixin, IMapper):
 
 class ActiveStartedMessageMapper(MessageMixin, IMapper):
 
-    def __init__(self, message):
-        super().__init__(message)
-        self.relations = SqlRelations()
-
     def to_dict(self):
         data = super().to_dict()
         data.update({
@@ -154,22 +149,19 @@ class ActiveStartedMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
+        relations = SqlRelations()
         blocks = self.message.election["blocks"]
         votes = self.message.election["votes"]
         tally = self.message.election["tally"]
 
-        self.relations.add_relations_from_data(self, blocks, 'blocks')
-        self.relations.add_relations_from_data(self, votes, 'votes')
-        self.relations.add_relations_from_data(self, tally, 'tally')
-        return self.relations.get_mappers()
+        relations.add_relations_from_data(self, blocks, 'blocks')
+        relations.add_relations_from_data(self, votes, 'votes')
+        relations.add_relations_from_data(self, tally, 'tally')
+        return relations.get_mappers()
 
 
 class ActiveStoppedMessageMapper(MessageMixin, IMapper):
 
-    def __init__(self, message):
-        super().__init__(message)
-        self.relations = SqlRelations()
-
     def to_dict(self):
         data = super().to_dict()
         data.update({
@@ -195,14 +187,15 @@ class ActiveStoppedMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
+        relations = SqlRelations()
         blocks = self.message.election["blocks"]
         votes = self.message.election["votes"]
         tally = self.message.election["tally"]
 
-        self.relations.add_relations_from_data(self, blocks, 'blocks')
-        self.relations.add_relations_from_data(self, votes, 'votes')
-        self.relations.add_relations_from_data(self, tally, 'tally')
-        return self.relations.get_mappers()
+        relations.add_relations_from_data(self, blocks, 'blocks')
+        relations.add_relations_from_data(self, votes, 'votes')
+        relations.add_relations_from_data(self, tally, 'tally')
+        return relations.get_mappers()
 
 
 class BroadcastMessageMapper(MessageMixin, IMapper):
@@ -265,16 +258,16 @@ class UnknownMessageMapper(MessageMixin, IMapper):
 
 class HeaderMapper(MessageMixin, IMapper):
 
-    def __init__(self, message):
-        super().__init__(message)
-        self.relations = SqlRelations()
-        # we can't add the header relation during init because
+    def set_header_relation(self):
+        relations = SqlRelations()
+        header = self.message.message["header"]
+        relations.add_relations_from_data(self, header, 'headers')
+        return relations
 
     def get_related_entities(self):
-        header = self.message.message["header"]
-        self.relations.add_relations_from_data(self, header, 'headers')
+        relations = self.set_header_relation()
 
-        return self.relations.get_mappers()
+        return relations.get_mappers()
 
 
 class ChannelMessageMapper(HeaderMapper):
@@ -282,10 +275,6 @@ class ChannelMessageMapper(HeaderMapper):
 
 
 class ChannelConfirmAckMapper(HeaderMapper):
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.relations = SqlRelations()
 
     def to_dict(self):
         data = super().to_dict()
@@ -297,14 +286,14 @@ class ChannelConfirmAckMapper(HeaderMapper):
         return super().get_table_schema() + [('vote_count', 'int')]
 
     def get_related_entities(self):
-        super().get_related_entities()
+        relations = super().set_header_relation()
         vote = self.message.message["vote"]
         channel = self.message.channel
 
-        self.relations.add_relations_from_data(self, vote, 'votes')
-        self.relations.add_relations_from_data(self, channel, 'channels')
+        relations.add_relations_from_data(self, vote, 'votes')
+        relations.add_relations_from_data(self, channel, 'channels')
 
-        return self.relations.get_mappers()
+        return relations.get_mappers()
 
 
 class NetworkMessageMapper(HeaderMapper):
@@ -323,30 +312,30 @@ class ConfirmAckMessageMapper(NetworkMessageMapper):
         return super().get_table_schema() + [('vote_count', 'int')]
 
     def get_related_entities(self):
-        super().get_related_entities()
+        relations = super().set_header_relation()
         vote = self.message.message["vote"]
 
-        self.relations.add_relations_from_data(self, vote, 'votes')
+        relations.add_relations_from_data(self, vote, 'votes')
 
-        return self.relations.get_mappers()
+        return relations.get_mappers()
 
 
 class PublishMessageMapper(NetworkMessageMapper):
 
     def get_related_entities(self):
-        super().get_related_entities()
+        relations = super().set_header_relation()
         block = self.message.message["block"]
-        self.relations.add_relations_from_data(self, block, 'blocks')
-        return self.relations.get_mappers()
+        relations.add_relations_from_data(self, block, 'blocks')
+        return relations.get_mappers()
 
 
 class KeepAliveMessageMapper(NetworkMessageMapper):
 
     def get_related_entities(self):
-        super().get_related_entities()
-        self.relations.add_relations_from_data(
+        relations = super().set_header_relation()
+        relations.add_relations_from_data(
             self, self.message.message["peers"], 'peers', 'peer')
-        return self.relations.get_mappers()
+        return relations.get_mappers()
 
 
 class ASCPullAckMessageMapper(NetworkMessageMapper):
@@ -363,10 +352,10 @@ class ASCPullAckMessageMapper(NetworkMessageMapper):
         return super().get_table_schema() + [('id', 'text'), ('type', 'text')]
 
     def get_related_entities(self):
-        super().get_related_entities()
+        relations = super().set_header_relation()
         blocks = self.message.message["blocks"]
-        self.relations.add_relations_from_data(self, blocks, 'blocks')
-        return self.relations.get_mappers()
+        relations.add_relations_from_data(self, blocks, 'blocks')
+        return relations.get_mappers()
 
 
 class ASCPullReqMessageMapper(NetworkMessageMapper):
@@ -402,18 +391,13 @@ class ConfirmReqMessageMapper(NetworkMessageMapper):
         ]
 
     def get_related_entities(self):
-        super().get_related_entities()
-        self.relations.add_relations_from_data(
+        relations = super().set_header_relation()
+        relations.add_relations_from_data(
             self, self.message.message["roots"], 'roots')
-        return self.relations.get_mappers()
+        return relations.get_mappers()
 
 
 class FlushMessageMapper(MessageMixin, IMapper):
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.relations = SqlRelations()
-        # we can't add the header relation during init because
 
     def to_dict(self):
         data = super().to_dict()
@@ -430,24 +414,24 @@ class FlushMessageMapper(MessageMixin, IMapper):
         ]
 
     def get_related_entities(self):
+        relations = SqlRelations()
         header = self.message.confirm_req["header"]
         block = self.message.confirm_req["block"]
         roots = self.message.confirm_req["roots"]
 
-        self.relations.add_relations_from_data(self, header, 'headers')
-        self.relations.add_relations_from_data(self, roots, 'roots')
+        relations.add_relations_from_data(self, header, 'headers')
+        relations.add_relations_from_data(self, roots, 'roots')
         if block:
-            self.relations.add_relations_from_data(self, block, 'blocks')
-        return self.relations.get_mappers()
+            relations.add_relations_from_data(self, block, 'blocks')
+        return relations.get_mappers()
 
 
 class ProcessConfirmedMessageMapper(MessageMixin, IMapper):
 
-    relations = SqlRelations()
-
     def get_related_entities(self):
+        relations = SqlRelations()
         block = self.message.block
 
-        self.relations.add_relations_from_data(
+        relations.add_relations_from_data(
             self, block, 'blocks')
-        return self.relations.get_mappers()
+        return relations.get_mappers()

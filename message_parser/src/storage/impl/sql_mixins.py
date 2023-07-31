@@ -21,6 +21,12 @@ class MapperMixin:
     def get_related_entities(self):
         return []
 
+    def get_unique_constraints(self):
+        return []
+
+    def get_indices(self):
+        return []
+
     @property
     def parent_entity_name(self):
         return self.__class__.__name__.replace("Mapper", "").lower()

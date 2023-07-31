@@ -44,7 +44,7 @@ class SQLiteStorage:
     def store_message(self, message):
         mapper = self.get_mapper_for_message(message)
         table_name, schema, data = mapper.handle_table()
-        self.repository.create_table_if_not_exists(table_name, schema)
+        self.repository.create_table_if_not_exists(mapper)
         mapper.sql_id = self.repository.insert_data(table_name, data)
 
         # handle related entities
@@ -53,8 +53,7 @@ class SQLiteStorage:
             related_table_name, related_schema, related_data = related_mapper.handle_table(
             )
 
-            self.repository.create_table_if_not_exists(related_table_name,
-                                                       related_schema)
+            self.repository.create_table_if_not_exists(related_mapper)
             if related_mapper.is_dependent():
                 mapped_data = related_mapper.convert_related_ids(id_mappings)
                 related_mapper.sql_id = self.repository.insert_data(
@@ -83,14 +82,37 @@ class SQLiteRepository:
         )
         self.conn.commit()
 
-    def create_table_if_not_exists(self, table_name, table_schema):
+    def create_table_if_not_exists(self, mapper):
+        table_name = mapper.get_table_name()
+        table_schema = mapper.get_table_schema()
+        unique_constraints = mapper.get_unique_constraints()
+        indices = mapper.get_indices()
+
+        # Add all columns in unique_constraints into a single UNIQUE clause
+        unique_constraints_str = f', UNIQUE ({", ".join(unique_constraints)})' if unique_constraints else ''
+
         query = f"""
         CREATE TABLE IF NOT EXISTS {table_name} (
-            {', '.join([f'{column} {dtype}' for column, dtype in table_schema])}
+            {', '.join([f'{column} {dtype}' for column, dtype in table_schema])}{unique_constraints_str}
         );
         """
         self.cursor.execute(query)
         self.maybe_commit()
+
+        for columns in indices:
+            index_name = f"{table_name}_{'_'.join(columns)}_index"
+            query = f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({', '.join(columns)});"
+            self.cursor.execute(query)
+            self.maybe_commit()
+
+    # def create_table_if_not_exists(self, table_name, table_schema):
+    #     query = f"""
+    #     CREATE TABLE IF NOT EXISTS {table_name} (
+    #         {', '.join([f'{column} {dtype}' for column, dtype in table_schema])}
+    #     );
+    #     """
+    #     self.cursor.execute(query)
+    #     self.maybe_commit()
 
     def insert_data(self, table_name, data):
         placeholders = ', '.join(['?'] * len(data))
@@ -100,9 +122,21 @@ class SQLiteRepository:
         INSERT INTO {table_name} ({columns})
         VALUES ({placeholders})
         """
-        self.cursor.execute(query, values)
-        self.maybe_commit()
-        return self.cursor.lastrowid  # return the last inserted id
+        try:
+            self.cursor.execute(query, values)
+            self.maybe_commit()
+            return self.cursor.lastrowid  # return the last inserted id
+        except sqlite3.IntegrityError:
+            # Now we need to get the id of the existing or inserted row
+            select_placeholders = ' AND '.join(
+                [f'{column} = ?' for column in data.keys()])
+            select_query = f"""
+            SELECT id FROM {table_name}
+            WHERE {select_placeholders}
+            """
+            self.cursor.execute(select_query, values)
+            row = self.cursor.fetchone()
+            return row[0] if row else None
 
     def maybe_commit(self):
         # Increment the batch counter
