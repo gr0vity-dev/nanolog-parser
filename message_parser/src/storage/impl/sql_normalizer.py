@@ -9,9 +9,25 @@ class SQLDataNormalizer:
             "channels": ChannelNormalizer(),
         }
 
-    def normalize_sql(self, table, entries):
-        normalizer = self._normalizers.get(table)
-        return normalizer.normalize(entries) if normalizer else entries
+    def singularize(self, entity: str):
+        if entity.endswith('ies'):
+            return entity[:-3] + 'y'
+        elif entity.endswith('s') and not entity.endswith('ss'):
+            return entity[:-1]
+        return entity
+
+    def pluralize(self, entity: str):
+        if entity.endswith('y'):
+            return entity[:-1] + 'ies'
+        elif entity.endswith('s'):
+            return entity
+        else:
+            return entity + 's'
+
+    def normalize_sql(self, entity, entries):
+        table_name = self.pluralize(entity)
+        normalizer = self._normalizers.get(table_name)
+        return normalizer.normalize(entries) if normalizer else entries, table_name
 
 
 class NormalizerInterface(ABC):

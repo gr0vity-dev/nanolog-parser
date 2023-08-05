@@ -63,6 +63,7 @@ class ConfirmAckMessage(BaseMessage):
     def post_init(self):
         self.vote_type = "final" if self.message["vote"][
             "timestamp"] == 18446744073709551615 else "normal"
+        self.vote_count = len(self.message["vote"]["hashes"])
         self.class_name = "ConfirmAckMessage"
 
 
@@ -79,7 +80,9 @@ class ConfirmAckMessageDropped(ConfirmAckMessage):
 
 
 class ConfirmReqMessage(BaseMessage):
-    pass
+    def post_init(self):
+        self.root_count = len(self.message["roots"])
+        self.class_name = "ConfirmReqMessage"
 
 
 class PublishMessage(BaseMessage):
@@ -115,7 +118,8 @@ class BroadcastMessage(BaseMessage):
 
 
 class FlushMessage(BaseMessage):
-    pass
+    def post_init(self):
+        self.root_count = len(self.confirm_req["roots"])
 
 
 class BlockProcessedMessage(BaseMessage):

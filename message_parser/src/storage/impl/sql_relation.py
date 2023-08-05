@@ -27,18 +27,25 @@ class SqlRelations:
         self.relations = []
         self.normalizer = SQLDataNormalizer()
 
-    def add_relations_from_data(self, message_mapper, data_list, table_name, key_for_string=None):
+    def add_relations_from_data(self, message_mapper, entity_entries, entity):
 
-        data_list = self.normalizer.normalize_sql(table_name, data_list)
+        if not entity_entries:
+            return
 
-        # if the data_list is not a list (string or dict), make it a list
-        if not isinstance(data_list, list):
-            data_list = [data_list]
+        entity_entries, table_name = self.normalizer.normalize_sql(
+            entity, entity_entries)
 
-        for data in data_list:
-            self.add_relation(message_mapper, data, table_name, key_for_string)
+        # Check if we're working with a singular entry (not a list). If so, wrap it in a list.
+        if not isinstance(entity_entries, list):
+            entity_entries = [entity_entries]
 
-        return self  # return the instance for chaining
+        # If the list contains strings, singularize the entity for a key.
+        key_for_string = self.normalizer.singularize(
+            entity) if isinstance(entity_entries[0], str) else None
+
+        for entry in entity_entries:
+            self.add_relation(message_mapper, entry,
+                              table_name, key_for_string)
 
     def add_relation(self, message_mapper, data, table_name, key_for_string=None):
 
