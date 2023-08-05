@@ -45,3 +45,86 @@ def test_store_BlockProcessedMessage():
     rows = cursor.fetchall()
     print(rows)
     assert len(rows) == 3
+
+
+def test_store_different_messages_to_confirmack_table():
+    data1 = {
+        "log_timestamp": "2023-07-28 21:43:31.200",
+        "log_process": "channel",
+        "log_level": "trace",
+        "log_file": None,
+        "log_event": "message_sent",
+        "message": {
+            "header": {
+                "type": "confirm_ack",
+                "network": "test",
+                "network_int": 21080,
+                "version": 19,
+                "version_min": 18,
+                "version_max": 19,
+                "extensions": 4352
+            },
+            "vote": {
+                "account": "398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC",
+                "timestamp": 18446744073709551615,
+                "hashes": [
+                    "B0B14D451CDC5623A8376741B9B63811F77B64EDFEB281DE18D05E958BD6B225"
+                ]
+            }
+        },
+        "channel": {
+            "endpoint": "[::ffff:192.168.112.6]:17075",
+            "peering_endpoint": "[::ffff:192.168.112.6]:17075",
+            "node_id": "2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78",
+            "socket": {
+                "remote_endpoint": "[::ffff:192.168.112.6]:17075",
+                "local_endpoint": "[::ffff:192.168.112.4]:39184"
+            }
+        },
+        "class_name": "ConfirmAckMessage",
+        "vote_type": "final"
+    }
+    data2 = {
+        "log_timestamp": "2023-07-15 14:19:44.951",
+        "log_process": "network",
+        "log_level": "trace",
+        "log_file": None,
+        "log_event": "message_received",
+        "message": {
+            "header": {
+                "type": "confirm_ack",
+                "network": "live",
+                "network_int": 21059,
+                "version": 19,
+                "version_min": 18,
+                "version_max": 19,
+                "extensions": 4352
+            },
+            "vote": {
+                "account": "399385203231BC15F0DFB54A28152F03912A084285BB1ED83437DEF8C7F4815D",
+                "timestamp": 18446744073709551615,
+                "hashes": [
+                    "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B",
+                    "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD9229"
+                ]
+            }
+        },
+        "class_name": "ConfirmAckMessage",
+        "vote_type": "final"
+    }
+
+    message = ConfirmAckMessageSent(data1)  # has channels relation
+    message2 = ConfirmAckMessageReceived(data2)  # no channels relation
+
+    storage = SQLiteStorage(':memory:')
+    storage.store_message(message)
+    storage.store_message(message2)
+
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM confirmackmessage;")
+    rows = cursor.fetchall()
+    assert len(rows) == 2
+
+    cursor.execute(f"SELECT * FROM channels;")
+    rows = cursor.fetchall()
+    assert len(rows) == 1
