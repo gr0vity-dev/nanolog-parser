@@ -49,7 +49,7 @@ def test_store_channel_sent():
     # Prepare a sample ConfirmAckMessage
     line = '[2023-07-28 21:43:31.200] [channel] [trace] "message_sent" message={ header={ type="confirm_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=4352 }, vote={ account="398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC", timestamp=18446744073709551615, hashes=[ "B0B14D451CDC5623A8376741B9B63811F77B64EDFEB281DE18D05E958BD6B225" ] } }, channel={ endpoint="[::ffff:192.168.112.6]:17075", peering_endpoint="[::ffff:192.168.112.6]:17075", node_id="2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78", socket={ remote_endpoint="[::ffff:192.168.112.6]:17075", local_endpoint="[::ffff:192.168.112.4]:39184" } }'
     properties = COMMON_PROPERTIES + ['vote_count']
-    store_message_test(line, ChannelConfirmAck, properties,
+    store_message_test(line, ConfirmAckMessageSent, properties,
                        ['channels', 'votes', 'headers'])
 
 
@@ -270,15 +270,17 @@ def store_message_test(line,
     storage.store_message(message)
 
     # Check if the stored data is correct
-    assert_data_in_table(storage, message_class, message, properties)
+    assert_data_in_table(storage, message, properties)
     if isinstance(relationships, list):
         for relation in relationships:
-            assert_related_entities_in_table(storage, message_class, relation)
+            assert_related_entities_in_table(
+                storage, message.class_name, relation)
     else:
-        assert_related_entities_in_table(storage, message_class, relationships)
+        assert_related_entities_in_table(
+            storage, message.class_name, relationships)
 
 
-def assert_related_entities_in_table(storage, message_class, relationship):
+def assert_related_entities_in_table(storage, message_class_name, relationship):
 
     cursor = storage.repository.conn.cursor()
 
@@ -305,15 +307,15 @@ def assert_related_entities_in_table(storage, message_class, relationship):
     for i, entity in enumerate(stored_entities_list):
         assert stored_message_entities_list[i]['relation_id'] == entity['id']
         assert stored_message_entities_list[i][
-            'message_type'] == message_class.__name__.lower()
+            'message_type'] == message_class_name.lower()
         assert stored_message_entities_list[i]['message_id'] == 1
         assert stored_message_entities_list[i]['relation_id'] == i + 1
 
 
-def assert_data_in_table(storage, message_class, message, properties):
+def assert_data_in_table(storage, message, properties):
     # Retrieve the stored message
     cursor = storage.repository.conn.cursor()
-    cursor.execute(f"SELECT * FROM {message_class.__name__.lower()};")
+    cursor.execute(f"SELECT * FROM {message.class_name.lower()};")
 
     stored_message = cursor.fetchone()
     print("DEBUG stored_message", stored_message)

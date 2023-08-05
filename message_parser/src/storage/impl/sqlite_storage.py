@@ -23,7 +23,9 @@ class SQLiteStorage:
             'ProcessConfirmedMessage': ProcessConfirmedMessageMapper,
             'ActiveStartedMessage': ActiveStartedMessageMapper,
             'ActiveStoppedMessage': ActiveStoppedMessageMapper,
-            'ConfirmAckMessage': ConfirmAckMessageMapper,
+            'ConfirmAckMessageReceived': ConfirmAckMessageMapper,
+            'ConfirmAckMessageSent': ChannelConfirmAckMapper,
+            'ConfirmAckMessageDropped': ChannelConfirmAckMapper,
             'ConfirmReqMessage': ConfirmReqMessageMapper,
             'PublishMessage': PublishMessageMapper,
             'KeepAliveMessage': KeepAliveMessageMapper,
@@ -32,7 +34,6 @@ class SQLiteStorage:
             'NetworkMessage': NetworkMessageMapper,
             'UnknownMessage': UnknownMessageMapper,
             'ChannelMessageMapper': ChannelMessageMapper,
-            'ChannelConfirmAck': ChannelConfirmAckMapper
             # ... add any other mappings here ...
         }
 

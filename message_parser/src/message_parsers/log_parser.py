@@ -25,38 +25,38 @@ class LogParser():
 
         # content is parsed dynamically (converted to json)
         message_configurations = {
-            ChannelConfirmAck: channel_sent("confirm_ack"),
-            ChannelConfirmReq: channel_sent("confirm_req"),
-            ChannelPublishMessage: channel_sent("publish"),
-            ChannelKeepAliveMessage: channel_sent("keepalive"),
-            ChannelAscPullAckMessage: channel_sent("asc_pull_ack"),
-            ChannelAscPullReqMessage: channel_sent("asc_pull_req"),
-            ChannelConfirmAckDropped: channel_dropped("confirm_ack"),
-            ChannelConfirmReqDropped: channel_dropped("confirm_req"),
-            ChannelPublishMessageDropped: channel_dropped("publish"),
-            ChannelKeepAliveMessageDropped: channel_dropped("keepalive"),
-            ChannelAscPullAckMessageDropped: channel_dropped("asc_pull_ack"),
-            ChannelAscPullReqMessageDropped: channel_dropped("asc_pull_req"),
-            ConfirmAckMessage: network("confirm_ack"),
-            ConfirmReqMessage: network("confirm_req"),
-            PublishMessage: network("publish"),
-            KeepAliveMessage: network("keepalive"),
-            AscPullAckMessage: network("asc_pull_ack"),
-            AscPullReqMessage: network("asc_pull_req"),
-            ElectionGenerateVoteNormalMessage: common_pattern("election", "generate_vote_normal"),
-            ElectionGenerateVoteFinalMessage: common_pattern("election", "generate_vote_final"),
-            BroadcastMessage: common_pattern("confirmation_solicitor", "broadcast"),
-            FlushMessage: common_pattern("confirmation_solicitor", "flush"),
-            BlockProcessedMessage: common_pattern("blockprocessor", "block_processed"),
-            ActiveStartedMessage: common_pattern("active_transactions", "active_started"),
-            ActiveStoppedMessage: common_pattern("active_transactions", "active_stopped"),
-            ProcessConfirmedMessage: common_pattern("node", "process_confirmed"),
+            channel_sent("confirm_ack"): ConfirmAckMessageSent,
+            channel_dropped("confirm_ack"): ConfirmAckMessageDropped,
+            network("confirm_ack"): ConfirmAckMessageReceived,
+            channel_sent("confirm_req"): ChannelConfirmReq,
+            channel_sent("publish"): ChannelPublishMessage,
+            channel_sent("keepalive"): ChannelKeepAliveMessage,
+            channel_sent("asc_pull_ack"): ChannelAscPullAckMessage,
+            channel_sent("asc_pull_req"): ChannelAscPullReqMessage,
+            channel_dropped("confirm_req"): ChannelConfirmReqDropped,
+            channel_dropped("publish"): ChannelPublishMessageDropped,
+            channel_dropped("keepalive"): ChannelKeepAliveMessageDropped,
+            channel_dropped("asc_pull_ack"): ChannelAscPullAckMessageDropped,
+            channel_dropped("asc_pull_req"): ChannelAscPullReqMessageDropped,
+            network("confirm_req"): ConfirmReqMessage,
+            network("publish"): PublishMessage,
+            network("keepalive"): KeepAliveMessage,
+            network("asc_pull_ack"): AscPullAckMessage,
+            network("asc_pull_req"): AscPullReqMessage,
+            common_pattern("election", "generate_vote_normal"): ElectionGenerateVoteNormalMessage,
+            common_pattern("election", "generate_vote_final"): ElectionGenerateVoteFinalMessage,
+            common_pattern("confirmation_solicitor", "broadcast"): BroadcastMessage,
+            common_pattern("confirmation_solicitor", "flush"): FlushMessage,
+            common_pattern("blockprocessor", "block_processed"): BlockProcessedMessage,
+            common_pattern("active_transactions", "active_started"): ActiveStartedMessage,
+            common_pattern("active_transactions", "active_stopped"): ActiveStoppedMessage,
+            common_pattern("node", "process_confirmed"): ProcessConfirmedMessage,
         }
 
         # content is parsed individually in the respective class
         static_message_configurations = {
-            ProcessedBlocksMessage: r'\[(blockprocessor)\] .* Processed \d+ blocks',
-            BlocksInQueueMessage: r'\[(blockprocessor)\] .* in processing queue',
+            r'\[(blockprocessor)\] .* Processed \d+ blocks': ProcessedBlocksMessage,
+            r'\[(blockprocessor)\] .* in processing queue': BlocksInQueueMessage,
         }
 
         # used as fallback if message_configurations is defined
@@ -65,11 +65,11 @@ class LogParser():
         #     NetworkMessage: r'\[network\] .*',
         # }
 
-        for message_class, message_regex in message_configurations.items():
+        for message_regex, message_class in message_configurations.items():
             self.parser.register_parser(
                 message_class, message_regex, parse_dynamic=True)
 
-        for message_class, message_regex in static_message_configurations.items():
+        for message_regex, message_class in static_message_configurations.items():
             self.parser.register_parser(
                 message_class, message_regex,  parse_dynamic=False)
 

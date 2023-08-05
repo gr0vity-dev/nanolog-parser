@@ -33,7 +33,7 @@ def test_parser():
     # Test the report
     report = parser.report()
     print("REPORT", report)
-    assert report["message_report"]["ConfirmAckMessage"] == 1
+    assert report["message_report"]["ConfirmAckMessageReceived"] == 1
     assert report["message_report"]["UnknownMessage"] == 1
 
 

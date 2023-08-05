@@ -63,6 +63,19 @@ class ConfirmAckMessage(BaseMessage):
     def post_init(self):
         self.vote_type = "final" if self.message["vote"][
             "timestamp"] == 18446744073709551615 else "normal"
+        self.class_name = "ConfirmAckMessage"
+
+
+class ConfirmAckMessageReceived(ConfirmAckMessage):
+    pass
+
+
+class ConfirmAckMessageSent(ConfirmAckMessage):
+    pass
+
+
+class ConfirmAckMessageDropped(ConfirmAckMessage):
+    pass
 
 
 class ConfirmReqMessage(BaseMessage):

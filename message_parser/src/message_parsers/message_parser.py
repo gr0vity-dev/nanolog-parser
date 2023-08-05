@@ -22,10 +22,10 @@ class MessageParser(IMessageParser):
         self.parsers = {}
 
     def register_parser(self, message_class, pattern, parse_dynamic=True):
-        self.parsers[message_class] = (pattern, parse_dynamic)
+        self.parsers[pattern] = (message_class, parse_dynamic)
 
     def _determine_message_type(self, line):
-        for message_class, (pattern, parse_dynamic) in self.parsers.items():
+        for pattern, (message_class, parse_dynamic) in self.parsers.items():
             if re.search(pattern, line):
                 return message_class, parse_dynamic
 

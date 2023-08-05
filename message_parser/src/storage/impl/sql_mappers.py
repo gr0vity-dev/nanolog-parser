@@ -8,63 +8,6 @@ class MessageMapper(MessageMixin, IMapper):
     pass
 
 
-# class NetworkMessageMapper(NetworkMessageMixin, IMapper):
-#     pass
-
-# class ConfirmAckMessageMapper(NetworkMessageMixin, IMapper):
-
-#     def to_dict(self):
-#         data = super().to_dict()
-#         self.message.timestamp = SQLDataNormalizer.adjust_max_timestamp(
-#             self.message.timestamp)
-#         data.update({
-#             'account': self.message.account,
-#             'timestamp': self.message.timestamp,
-#             'hash_count': self.message.hash_count,
-#             'vote_type': self.message.vote_type,
-#         })
-#         return data
-
-#     def get_table_schema(self):
-#         return super().get_table_schema() + [
-#             ('account', 'text'),
-#             ('timestamp', 'integer'),
-#             ('hash_count', 'integer'),
-#             ('vote_type', 'text'),
-#         ]
-
-#     def get_related_entities(self):
-#         relations = SqlRelations(self, self.message.hashes, 'hashes', 'hash')
-#         return relations.get_mappers()
-
-
-# class PublishMessageMapper(NetworkMessageMixin, IMapper):
-
-#     def to_dict(self):
-#         data = super().to_dict()
-#         data.update({
-#             'block_type': self.message.block_type,
-#             'hash': self.message.hash,
-#             'account': self.message.account,
-#             'previous': self.message.previous,
-#             'representative': self.message.representative,
-#             'balance': self.message.balance,
-#             'link': self.message.link,
-#             'signature': self.message.signature
-#         })
-#         return data
-
-#     def get_table_schema(self):
-#         return super().get_table_schema() + [('block_type', 'text'),
-#                                              ('hash', 'text'),
-#                                              ('account', 'text'),
-#                                              ('previous', 'text'),
-#                                              ('representative', 'text'),
-#                                              ('balance', 'text'),
-#                                              ('link', 'text'),
-#                                              ('signature', 'text')]
-
-
 class BlockProcessedMessageMapper(MessageMixin, IMapper):
 
     def to_dict(self):
@@ -294,6 +237,10 @@ class ChannelConfirmAckMapper(HeaderMapper):
         relations.add_relations_from_data(self, channel, 'channels')
 
         return relations.get_mappers()
+
+    @property
+    def parent_entity_name(self):
+        return "confirmackmessage"
 
 
 class NetworkMessageMapper(HeaderMapper):
