@@ -238,10 +238,6 @@ class ChannelConfirmAckMapper(HeaderMapper):
 
         return relations.get_mappers()
 
-    @property
-    def parent_entity_name(self):
-        return "confirmackmessage"
-
 
 class NetworkMessageMapper(HeaderMapper):
     pass

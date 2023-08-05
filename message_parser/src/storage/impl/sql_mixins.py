@@ -27,10 +27,6 @@ class MapperMixin:
     def get_indices(self):
         return []
 
-    @property
-    def parent_entity_name(self):
-        return self.__class__.__name__.replace("Mapper", "").lower()
-
 
 class MessageMixin(MapperMixin):
 
@@ -55,6 +51,11 @@ class MessageMixin(MapperMixin):
             ('log_event', 'text'),
             ('log_file', 'text'),
         ]
+
+    @property
+    def parent_entity_name(self):
+        assert hasattr(self.message, 'class_name')
+        return self.message.class_name.lower()
 
 
 class NetworkMessageMixin(MessageMixin):
