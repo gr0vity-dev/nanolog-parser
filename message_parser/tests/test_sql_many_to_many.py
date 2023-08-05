@@ -45,12 +45,20 @@ def test_store_blockprocessor_message():
     store_message_test(line, BlockProcessedMessage, properties, "blocks")
 
 
-def test_store_channel_sent():
+def test_store_channel_confirm_ack_sent():
     # Prepare a sample ConfirmAckMessage
     line = '[2023-07-28 21:43:31.200] [channel] [trace] "message_sent" message={ header={ type="confirm_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=4352 }, vote={ account="398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC", timestamp=18446744073709551615, hashes=[ "B0B14D451CDC5623A8376741B9B63811F77B64EDFEB281DE18D05E958BD6B225" ] } }, channel={ endpoint="[::ffff:192.168.112.6]:17075", peering_endpoint="[::ffff:192.168.112.6]:17075", node_id="2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78", socket={ remote_endpoint="[::ffff:192.168.112.6]:17075", local_endpoint="[::ffff:192.168.112.4]:39184" } }'
-    properties = COMMON_PROPERTIES + ['vote_count']
+    properties = COMMON_PROPERTIES + ['vote_count', 'vote_type']
     store_message_test(line, ConfirmAckMessageSent, properties,
                        ['channels', 'votes', 'headers'])
+
+
+def test_store_channel_confirm_req_sent():
+    # Prepare a sample ConfirmAckMessage
+    line = '[2023-07-28 21:43:24.608] [channel] [trace] "message_sent" message={ header={ type="confirm_req", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=4352 }, block=null, roots=[ { root="C608ECAD5CEEB3432C1BD591C16A67BD696178203D1BB02DCA277DE84238EF86", hash="6D922AC3916233A76E8774614F330AE6AC9FD506EF2220EA1C0A74869F7AC203" } ] }, channel={ endpoint="[::ffff:192.168.112.3]:17075", peering_endpoint="[::ffff:192.168.112.3]:17075", node_id="01F4C307028F5118F449AFED64DB25F5D7469E48312010429E90BA0B1274F607", socket={ remote_endpoint="[::ffff:192.168.112.3]:17075", local_endpoint="[::ffff:192.168.112.4]:41232" } }'
+    properties = COMMON_PROPERTIES + ['root_count']
+    store_message_test(line, ConfirmReqMessageSent, properties,
+                       ['channels', 'roots', 'headers'])
 
 
 def test_store_confirm_ack_message():

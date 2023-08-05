@@ -1,49 +1,14 @@
 import sqlite3
-from src.messages import *
-from src.storage.impl.sql_mappers import *
-from src.storage.impl.sql_relation import HashableMapper, LinkMapper
+from src.storage.impl.sql_message_maps import MessageMapperRegistry
 
 
 class SQLiteStorage:
 
     def __init__(self, db_name):
         self.repository = SQLiteRepository(db_name)
-        base_mappers = {
-            'HashableMapper': HashableMapper,
-            'LinkMapper': LinkMapper
-        }
-        self.mapper_registry = {
-            **base_mappers, 'BlockProcessedMessage': BlockProcessedMessageMapper,
-            'ProcessedBlocksMessage': ProcessedBlocksMessageMapper,
-            'BlocksInQueueMessage': BlocksInQueueMessageMapper,
-            'BroadcastMessage': BroadcastMessageMapper,
-            'FlushMessage': FlushMessageMapper,
-            'ElectionGenerateVoteNormalMessage': ElectionGenerateVoteNormalMessageMapper,
-            'ElectionGenerateVoteFinalMessage': ElectionGenerateVoteFinalMessageMapper,
-            'ProcessConfirmedMessage': ProcessConfirmedMessageMapper,
-            'ActiveStartedMessage': ActiveStartedMessageMapper,
-            'ActiveStoppedMessage': ActiveStoppedMessageMapper,
-            'ConfirmAckMessageReceived': ConfirmAckMessageMapper,
-            'ConfirmAckMessageSent': ChannelConfirmAckMapper,
-            'ConfirmAckMessageDropped': ChannelConfirmAckMapper,
-            'ConfirmReqMessage': ConfirmReqMessageMapper,
-            'PublishMessage': PublishMessageMapper,
-            'KeepAliveMessage': KeepAliveMessageMapper,
-            'AscPullAckMessage': ASCPullAckMessageMapper,
-            'AscPullReqMessage': ASCPullReqMessageMapper,
-            'NetworkMessage': NetworkMessageMapper,
-            'UnknownMessage': UnknownMessageMapper,
-            'ChannelMessageMapper': ChannelMessageMapper,
-            # ... add any other mappings here ...
-        }
-
-    def get_mapper_for_message(self, message):
-        mapper_class = self.mapper_registry.get(
-            type(message).__name__, MessageMapper)
-        return mapper_class(message)
 
     def store_message(self, message):
-        mapper = self.get_mapper_for_message(message)
+        mapper = MessageMapperRegistry.get_mapper_for_message(message)
         table_name, schema, data = mapper.handle_table()
         self.repository.create_table_if_not_exists(mapper)
         mapper.sql_id = self.repository.insert_data(table_name, data)
@@ -51,8 +16,7 @@ class SQLiteStorage:
         # handle related entities
         id_mappings = {}
         for related_mapper in mapper.get_related_entities():
-            related_table_name, related_schema, related_data = related_mapper.handle_table(
-            )
+            related_table_name, related_schema, related_data = related_mapper.handle_table()
 
             self.repository.create_table_if_not_exists(related_mapper)
             if related_mapper.is_dependent():
@@ -105,15 +69,6 @@ class SQLiteRepository:
             query = f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({', '.join(columns)});"
             self.cursor.execute(query)
             self.maybe_commit()
-
-    # def create_table_if_not_exists(self, table_name, table_schema):
-    #     query = f"""
-    #     CREATE TABLE IF NOT EXISTS {table_name} (
-    #         {', '.join([f'{column} {dtype}' for column, dtype in table_schema])}
-    #     );
-    #     """
-    #     self.cursor.execute(query)
-    #     self.maybe_commit()
 
     def insert_data(self, table_name, data):
         placeholders = ', '.join(['?'] * len(data))

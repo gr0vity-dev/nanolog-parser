@@ -1,4 +1,4 @@
-from src.storage.impl.sql_mixins import MapperMixin
+from src.storage.impl.sql_mixins import MapperMixin, DataResolverMixin
 from src.storage.impl.sql_mapper_interface import IMapper
 from src.storage.impl.sql_normalizer import SQLDataNormalizer
 
@@ -131,3 +131,18 @@ class HashableMapper(MapperMixin, IMapper):
         keys = [column for column, _ in self.get_table_schema()
                 if column != 'id']
         return keys
+
+
+class RelationsMixin(DataResolverMixin):
+    sql_relation = set()
+
+    def _get_entity_name(self, rel):
+        return rel.split('.')[-1]
+
+    def get_related_entities(self):
+        relations = SqlRelations()
+        for rel in self.sql_relation:
+            nested_data = self._resolve_nested_key(rel)
+            entity = self._get_entity_name(rel)
+            relations.add_relations_from_data(self, nested_data, entity)
+        return relations.get_mappers()

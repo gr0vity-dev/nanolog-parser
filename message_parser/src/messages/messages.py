@@ -85,6 +85,18 @@ class ConfirmReqMessage(BaseMessage):
         self.class_name = "ConfirmReqMessage"
 
 
+class ConfirmReqMessageReceived(ConfirmReqMessage):
+    pass
+
+
+class ConfirmReqMessageSent(ConfirmReqMessage):
+    pass
+
+
+class ConfirmReqMessageDropped(ConfirmReqMessage):
+    pass
+
+
 class PublishMessage(BaseMessage):
     pass
 

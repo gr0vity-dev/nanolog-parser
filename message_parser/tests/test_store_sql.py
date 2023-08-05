@@ -49,10 +49,38 @@ def test_store_BlockProcessedMessage():
 
 def test_store_different_messages_to_confirmack_table():
     data1 = {
-        "log_timestamp": "2023-07-28 21:43:31.200",
+        "log_timestamp": "2023-07-28 21:43:31.898",
+        "log_process": "network",
+        "log_level": "trace",
+        "log_file": "nl_pr4",
+        "log_event": "message_received",
+        "message": {
+            "header": {
+                "type": "confirm_ack",
+                "network": "test",
+                "network_int": 21080,
+                "version": 19,
+                "version_min": 18,
+                "version_max": 19,
+                "extensions": 4352
+            },
+            "vote": {
+                "account": "FCE16FA5F87645DD73C799B3E959F635752ACA6EF8D9F4918B34B3D5E00E0B56",
+                "timestamp": 18446744073709551615,
+                "hashes": [
+                    "5B7181F80219011D4E65F93FA2C02FBA117A0FC667BCF9E7BF72BE5C1FAE9334"
+                ]
+            }
+        },
+        "class_name": "ConfirmAckMessage",
+        "vote_type": "final",
+        "vote_count": 1
+    }
+    data2 = {
+        "log_timestamp": "2023-07-28 21:43:33.798",
         "log_process": "channel",
         "log_level": "trace",
-        "log_file": None,
+        "log_file": "nl_pr4",
         "log_event": "message_sent",
         "message": {
             "header": {
@@ -65,66 +93,71 @@ def test_store_different_messages_to_confirmack_table():
                 "extensions": 4352
             },
             "vote": {
-                "account": "398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC",
+                "account": "04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57",
                 "timestamp": 18446744073709551615,
                 "hashes": [
-                    "B0B14D451CDC5623A8376741B9B63811F77B64EDFEB281DE18D05E958BD6B225"
+                    "E86EA7AF605BA00B2E82419728CB5C9EE511873A752999D436650CCEAAA2FB33"
                 ]
             }
         },
         "channel": {
-            "endpoint": "[::ffff:192.168.112.6]:17075",
-            "peering_endpoint": "[::ffff:192.168.112.6]:17075",
-            "node_id": "2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78",
+            "endpoint": "[::ffff:192.168.112.3]:17075",
+            "peering_endpoint": "[::ffff:192.168.112.3]:17075",
+            "node_id": "01F4C307028F5118F449AFED64DB25F5D7469E48312010429E90BA0B1274F607",
             "socket": {
-                "remote_endpoint": "[::ffff:192.168.112.6]:17075",
-                "local_endpoint": "[::ffff:192.168.112.4]:39184"
+                "remote_endpoint": "[::ffff:192.168.112.3]:17075",
+                "local_endpoint": "[::ffff:192.168.112.2]:43138"
             }
         },
         "class_name": "ConfirmAckMessage",
-        "vote_type": "final"
+        "vote_type": "final",
+        "vote_count": 1
     }
-    data2 = {
-        "log_timestamp": "2023-07-15 14:19:44.951",
+    data3 = {
+        "log_timestamp": "2023-07-28 21:43:31.898",
         "log_process": "network",
         "log_level": "trace",
-        "log_file": None,
+        "log_file": "nl_pr4",
         "log_event": "message_received",
         "message": {
             "header": {
                 "type": "confirm_ack",
-                "network": "live",
-                "network_int": 21059,
+                "network": "test",
+                "network_int": 21080,
                 "version": 19,
                 "version_min": 18,
                 "version_max": 19,
                 "extensions": 4352
             },
             "vote": {
-                "account": "399385203231BC15F0DFB54A28152F03912A084285BB1ED83437DEF8C7F4815D",
+                "account": "FCE16FA5F87645DD73C799B3E959F635752ACA6EF8D9F4918B34B3D5E00E0B56",
                 "timestamp": 18446744073709551615,
                 "hashes": [
-                    "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD922B",
-                    "58FF212FF44F1E7CEC4AEE6F9FAE3F9EBCC03D2EDA12BA25E26E4C0F3DBD9229"
+                    "5B7181F80219011D4E65F93FA2C02FBA117A0FC667BCF9E7BF72BE5C1FAE9334"
                 ]
             }
         },
         "class_name": "ConfirmAckMessage",
-        "vote_type": "final"
+        "vote_type": "final",
+        "vote_count": 1
     }
 
-    message = ConfirmAckMessageSent(data1)  # has channels relation
-    message2 = ConfirmAckMessageReceived(data2)  # no channels relation
+    message = ConfirmAckMessageReceived(data1)  # no channels relation
+    message2 = ConfirmAckMessageSent(data2)  # failed during prodrun
+    message3 = ConfirmAckMessageReceived(data3)  # no channels relation
 
     storage = SQLiteStorage(':memory:')
     storage.store_message(message)
     storage.store_message(message2)
+    storage.store_message(message3)
 
     cursor = storage.repository.conn.cursor()
     cursor.execute(f"SELECT * FROM confirmackmessage;")
     rows = cursor.fetchall()
-    assert len(rows) == 2
+    print(rows)
+    assert len(rows) == 3
 
     cursor.execute(f"SELECT * FROM channels;")
     rows = cursor.fetchall()
+    print(rows)
     assert len(rows) == 1
