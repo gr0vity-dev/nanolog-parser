@@ -2,58 +2,6 @@ from .base_message import BaseMessage
 import re
 
 
-class ChannelMessage(BaseMessage):
-    pass
-
-
-class ChannelConfirmAck(ChannelMessage):
-    pass
-
-
-class ChannelConfirmReq(ChannelMessage):
-    pass
-
-
-class ChannelPublishMessage(ChannelMessage):
-    pass
-
-
-class ChannelKeepAliveMessage(ChannelMessage):
-    pass
-
-
-class ChannelAscPullAckMessage(ChannelMessage):
-    pass
-
-
-class ChannelAscPullReqMessage(ChannelMessage):
-    pass
-
-
-class ChannelConfirmAckDropped(ChannelMessage):
-    pass
-
-
-class ChannelConfirmReqDropped(ChannelMessage):
-    pass
-
-
-class ChannelPublishMessageDropped(ChannelMessage):
-    pass
-
-
-class ChannelKeepAliveMessageDropped(ChannelMessage):
-    pass
-
-
-class ChannelAscPullAckMessageDropped(ChannelMessage):
-    pass
-
-
-class ChannelAscPullReqMessageDropped(ChannelMessage):
-    pass
-
-
 class UnknownMessage(BaseMessage):
     pass
 
@@ -98,22 +46,104 @@ class ConfirmReqMessageDropped(ConfirmReqMessage):
 
 
 class PublishMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "PublishMessage"
+
+
+class PublishMessageReceived(PublishMessage):
+    pass
+
+
+class PublishMessageSent(PublishMessage):
+    pass
+
+
+class PublishMessageDropped(PublishMessage):
     pass
 
 
 class KeepAliveMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "KeepAliveMessage"
+
+
+class KeepAliveMessageReceived(KeepAliveMessage):
+    pass
+
+
+class KeepAliveMessageSent(KeepAliveMessage):
+    pass
+
+
+class KeepAliveMessageDropped(KeepAliveMessage):
     pass
 
 
 class AscPullAckMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "AscPullAckMessage"
+
+
+class AscPullAckMessageReceived(AscPullAckMessage):
+    pass
+
+
+class AscPullAckMessageSent(AscPullAckMessage):
+    pass
+
+
+class AscPullAckMessageDropped(AscPullAckMessage):
     pass
 
 
 class AscPullReqMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "AscPullReqMessage"
+
+
+class AscPullReqMessageReceived(AscPullReqMessage):
     pass
 
 
-class NetworkMessage(BaseMessage):
+class AscPullReqMessageSent(AscPullReqMessage):
+    pass
+
+
+class AscPullReqMessageDropped(AscPullReqMessage):
+    pass
+
+
+class NodeIdHandshakeMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "NodeIdHandshakeMessage"
+
+
+class NodeIdHandshakeMessageReceived(NodeIdHandshakeMessage):
+    pass
+
+
+class NodeIdHandshakeMessageSent(NodeIdHandshakeMessage):
+    pass
+
+
+class NodeIdHandshakeMessageDropped(NodeIdHandshakeMessage):
+    pass
+
+
+class TelemetryReqMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "TelemetryReqMessage"
+
+
+class TelemetryReqMessageReceived(TelemetryReqMessage):
+    pass
+
+
+class TelemetryReqMessageSent(TelemetryReqMessage):
+    pass
+
+
+class TelemetryReqMessageDropped(TelemetryReqMessage):
     pass
 
 
@@ -185,4 +215,12 @@ class ActiveStoppedMessage(BaseMessage):
 
 
 class ProcessConfirmedMessage(BaseMessage):
+    pass
+
+
+class VoteProcessedMessage(BaseMessage):
+    pass
+
+
+class SendingFrontierMessage(BaseMessage):
     pass

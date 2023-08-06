@@ -32,13 +32,23 @@ class BroadcastMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {'channel', 'hash'}
 
 
+class ConfirmAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"vote_type", "vote_count"}
+    sql_relation = {"message.header", "message.vote"}
+
+
 class ChannelConfirmAckMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"vote_type", "vote_count"}
     sql_relation = {"message.header", "message.vote", "channel"}
 
 
-class ChannelConfirmReqkMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+class ConfirmReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"root_count"}
+    sql_relation = {"message.header", "message.roots"}
+
+
+class ChannelConfirmReqkMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"root_count", "message.block"}
     sql_relation = {"message.header", "message.roots", "channel"}
 
 
@@ -54,35 +64,63 @@ class UnknownMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"content"}
 
 
-class ConfirmAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {"vote_type", "vote_count"}
-    sql_relation = {"message.header", "message.vote"}
-
-
 class PublishMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_relation = {"message.header", "message.block"}
+
+
+class ChannelPublishMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "message.block", "channel"}
 
 
 class KeepAliveMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_relation = {"message.header", "message.peers"}
 
 
-class ASCPullAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+class ChannelKeepAliveMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "message.peers", "channel"}
+
+
+class AscPullAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     SqlBaseMapperMixin.set_type("message.id", str)
     sql_columns = {"message.id", "message.type"}
     sql_relation = {"message.header", "message.blocks"}
 
 
-class ASCPullReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+class ChannelAscPullAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    SqlBaseMapperMixin.set_type("message.id", str)
+    sql_columns = {"message.id", "message.type"}
+    sql_relation = {"message.header", "message.blocks", "channel"}
+
+
+class AscPullReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     SqlBaseMapperMixin.set_type("message.id", str)
     sql_columns = {"message.id", "message.start_type",
                    "message.start", "message.count"}
     sql_relation = {"message.header"}
 
 
-class ConfirmReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {"root_count"}
-    sql_relation = {"message.header", "message.roots"}
+class ChannelAscPullReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    SqlBaseMapperMixin.set_type("message.id", str)
+    sql_columns = {"message.id", "message.start_type",
+                   "message.start", "message.count"}
+    sql_relation = {"message.header", "channel"}
+
+
+class NodeIdHandshakeMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "message.query", "message.response"}
+
+
+class ChannelNodeIdHandshakeMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "message.query",
+                    "message.response", "channel"}
+
+
+class TelemetryReqMessageeMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header"}
+
+
+class ChannelTelemetryReqMessageeMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "channel"}
 
 
 class FlushMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
@@ -93,3 +131,12 @@ class FlushMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapp
 
 class ProcessConfirmedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_relation = {"block"}
+
+
+class VoteProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"status"}
+    sql_relation = {"vote"}
+
+
+class SendingFrontierMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"account", "frontier", "socket.remote_endpoint"}
