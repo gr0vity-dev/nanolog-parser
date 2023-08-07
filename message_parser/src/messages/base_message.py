@@ -165,6 +165,12 @@ class BaseMessage():
         # This method does nothing in the base class, and is meant to be overridden in subclasses
         pass
 
+    def remove_attribute(self, attribute_name):
+        if attribute_name in self.__dict__:
+            del self.__dict__[attribute_name]
+        else:
+            raise AttributeError("No such attribute: " + attribute_name)
+
     def __setattr__(self, name, value):
         self.__dict__[name] = value
 
