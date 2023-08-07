@@ -44,12 +44,30 @@ class MessageMapperRegistry:
         NodeIdHandshakeMessageSent: ChannelNodeIdHandshakeMessageMapper,
         NodeIdHandshakeMessageDropped: ChannelNodeIdHandshakeMessageMapper,
 
-        TelemetryReqMessageReceived: TelemetryReqMessageeMapper,
-        TelemetryReqMessageSent: ChannelTelemetryReqMessageeMapper,
-        TelemetryReqMessageDropped: ChannelTelemetryReqMessageeMapper,
+        TelemetryReqMessageReceived: TelemetryReqMessageMapper,
+        TelemetryReqMessageSent: ChannelTelemetryReqMessageMapper,
+        TelemetryReqMessageDropped: ChannelTelemetryReqMessageMapper,
+
+        TelemetryAckMessageReceived: TelemetryAckMessageMapper,
+        TelemetryAckMessageSent: ChannelTelemetryAckMessageMapper,
+        TelemetryAckMessageDropped: ChannelTelemetryAckMessageMapper,
+
+        BulkPullAccountMessageReceived: BulkPullAccountMessageMapper,
+        BulkPullAccountMessageSent: ChannelBulkPullAccountMessageMapper,
+        BulkPullAccountMessageDropped: ChannelBulkPullAccountMessageMapper,
+
+        FrontierReqMessageReceived: FrontierReqMessageMapper,
+        FrontierReqMessageSent: ChannelFrontierReqMessageMapper,
+        FrontierReqMessageDropped: ChannelFrontierReqMessageMapper,
+
+        BulkPushMessageReceived: BulkPushtMessageMapper,
+        BulkPushMessageSent: ChannelBulkPushtMessageMapper,
+        BulkPushMessageDropped: ChannelBulkPushtMessageMapper,
 
         VoteProcessedMessage: VoteProcessedMessageMapper,
         SendingFrontierMessage: SendingFrontierMessageMapper,
+        BulkPullAccountPendingMessage: BulkPullAccountPendingMessageMapper,
+        ElectionConfirmedlMessage: ElectionConfirmedlMessageMapper,
 
         UnknownMessage: UnknownMessageMapper,
     }

@@ -12,6 +12,86 @@ COMMON_PROPERTIES = [
 ]
 
 
+def test_store_bulkpush_message_sent():
+    line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_sent" message={ header={ type="bulk_push", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 } }, channel={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:50174" } }'
+    properties = COMMON_PROPERTIES
+    store_message_test(line, BulkPushMessageSent,
+                       properties, ["headers", "channels"])
+
+
+def test_store_bulkpush_message_sent():
+    line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_dropped" message={ header={ type="bulk_push", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 } }, channel={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:50174" } }'
+    properties = COMMON_PROPERTIES
+    store_message_test(line, BulkPushMessageDropped,
+                       properties, ["headers", "channels"])
+
+
+def test_store_frontierreq_message_sent():
+    line = '[2023-07-28 21:43:29.697] [channel] [trace] "message_sent" message={ header={ type="frontier_req", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 }, start="0000000000000000000000000000000000000000000000000000000000000000", age=1690584209, count=1048576 }, channel={ endpoint="[::ffff:192.168.112.3]:17075", peering_endpoint="[::ffff:192.168.112.3]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.3]:17075", local_endpoint="[::ffff:192.168.112.2]:43144" } }'
+    properties = COMMON_PROPERTIES + \
+        ["message_start", "message_age", "message_count"]
+    store_message_test(line, FrontierReqMessageSent,
+                       properties, ["headers", "channels"])
+
+
+def test_store_frontierreq_message_sent():
+    line = '[2023-07-28 21:43:29.697] [channel] [trace] "message_dropped" message={ header={ type="frontier_req", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 }, start="0000000000000000000000000000000000000000000000000000000000000000", age=1690584209, count=1048576 }, channel={ endpoint="[::ffff:192.168.112.3]:17075", peering_endpoint="[::ffff:192.168.112.3]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.3]:17075", local_endpoint="[::ffff:192.168.112.2]:43144" } }'
+    properties = COMMON_PROPERTIES + \
+        ["message_start", "message_age", "message_count"]
+    store_message_test(line, FrontierReqMessageDropped,
+                       properties, ["headers", "channels"])
+
+
+def test_store_bulkpullaccount_message():
+    line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_sent" message={ header={ type="bulk_pull_account", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 }, account="04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57", minimum_amount="000000000000D3C21BCECCEDA1000000", flags=0 }, channel={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:46806" } }'
+    properties = COMMON_PROPERTIES + \
+        ["message_account", "message_minimum_amount", "message_flags"]
+    store_message_test(line, BulkPullAccountMessageSent,
+                       properties, ["headers", "channels"])
+
+
+def test_store_bulkpullaccount_message():
+    line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_dropped" message={ header={ type="bulk_pull_account", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 }, account="04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57", minimum_amount="000000000000D3C21BCECCEDA1000000", flags=0 }, channel={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:46806" } }'
+    properties = COMMON_PROPERTIES + \
+        ["message_account", "message_minimum_amount", "message_flags"]
+    store_message_test(line, BulkPullAccountMessageDropped,
+                       properties, ["headers", "channels"])
+
+
+def test_store_electionconfirmed():
+    line = '[2023-07-28 21:43:45.598] [election] [trace] "election_confirmed" root="AE75487D696A575088A5A43B927DFE86C6B5EA831B015DAE50C1525AE16A8C56AE75487D696A575088A5A43B927DFE86C6B5EA831B015DAE50C1525AE16A8C56"'
+    properties = COMMON_PROPERTIES + ["root"]
+    store_message_test(line, ElectionConfirmedlMessage, properties, [])
+
+
+def test_store_bulkpullaccountclient_requesting_pending():
+    line = '[2023-07-28 21:45:58.801] [bulk_pull_account_client] [trace] "requesting_pending" account="nano_137xfpc4ynmzj3rsf3nej6mzz33n3f7boj6jqsnxpgqw88oh8utqcq7nska8", connection={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:46806" } }'
+    properties = COMMON_PROPERTIES + ["account"]
+    store_message_test(line, BulkPullAccountPendingMessage,
+                       properties, ['channels'])
+
+
+def test_store_telemetryack_message():
+    line = '[2023-07-28 21:44:39.700] [network] [trace] "message_received" message={ header={ type="telemetry_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=202 }, data={  } }'
+    properties = COMMON_PROPERTIES
+    store_message_test(line, TelemetryAckMessageReceived,
+                       properties, ['headers'])
+
+
+def test_store_telemetryack_message_sent():
+    line = '[2023-07-28 21:44:44.698] [channel] [trace] "message_sent" message={ header={ type="telemetry_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=202 }, data={  } }, channel={ endpoint="[::ffff:192.168.112.2]:17075", peering_endpoint="[::ffff:192.168.112.2]:17075", node_id="83886EC0215F7478F0881C93295E3F43EB901CDD36EBD2EF1932DF484C66E66C", socket={ remote_endpoint="[::ffff:192.168.112.2]:17075", local_endpoint="[::ffff:192.168.112.4]:53356" } }'
+    properties = COMMON_PROPERTIES
+    store_message_test(line, TelemetryAckMessageSent,
+                       properties, ['headers', 'channels'])
+
+
+def test_store_telemetryack_message_dropped():
+    line = '[2023-07-28 21:44:44.698] [channel] [trace] "message_dropped" message={ header={ type="telemetry_ack", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=202 }, data={  } }, channel={ endpoint="[::ffff:192.168.112.2]:17075", peering_endpoint="[::ffff:192.168.112.2]:17075", node_id="83886EC0215F7478F0881C93295E3F43EB901CDD36EBD2EF1932DF484C66E66C", socket={ remote_endpoint="[::ffff:192.168.112.2]:17075", local_endpoint="[::ffff:192.168.112.4]:53356" } }'
+    properties = COMMON_PROPERTIES
+    store_message_test(line, TelemetryAckMessageDropped,
+                       properties, ['headers', 'channels'])
+
+
 def test_store_frontierreqserver_sending_frontier():
     line = '[2023-07-28 21:44:30.998] [frontier_req_server] [trace] "sending_frontier" account="nano_11117xgbaut51xi54napargzjf15xjur5ecci7ach44o1qdpe61j7wfnyeur", frontier="4B9B28EC618E9FDE3624617AA87373F06D99CEBBBF3FF2A17394C6459666C760", socket={ remote_endpoint="[::ffff:192.168.112.6]:43808", local_endpoint="0.0.0.0:0" }'
     properties = COMMON_PROPERTIES + \

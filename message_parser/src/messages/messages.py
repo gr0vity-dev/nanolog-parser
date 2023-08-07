@@ -147,11 +147,32 @@ class TelemetryReqMessageDropped(TelemetryReqMessage):
     pass
 
 
+class TelemetryAckMessage(BaseMessage):
+    def post_init(self):
+        self.class_name = "TelemetryAckMessage"
+
+
+class TelemetryAckMessageReceived(TelemetryReqMessage):
+    pass
+
+
+class TelemetryAckMessageSent(TelemetryReqMessage):
+    pass
+
+
+class TelemetryAckMessageDropped(TelemetryReqMessage):
+    pass
+
+
 class ElectionGenerateVoteNormalMessage(BaseMessage):
     pass
 
 
 class ElectionGenerateVoteFinalMessage(BaseMessage):
+    pass
+
+
+class ElectionConfirmedlMessage(BaseMessage):
     pass
 
 
@@ -223,4 +244,64 @@ class VoteProcessedMessage(BaseMessage):
 
 
 class SendingFrontierMessage(BaseMessage):
+    pass
+
+
+class BulkPullAccountPendingMessage(BaseMessage):
+    def post_init(self):
+        self.channel = self.connection
+        # self.remove_attribute("connection")
+
+
+class BulkPullAccountMessage(BaseMessage):
+
+    def post_init(self):
+        self.class_name = "BulkPullAccountMessage"
+
+
+class BulkPullAccountMessageReceived(BulkPullAccountMessage):
+    pass
+
+
+class BulkPullAccountMessageSent(BulkPullAccountMessage):
+    pass
+
+
+class BulkPullAccountMessageDropped(BulkPullAccountMessage):
+    pass
+
+
+class BulkPushMessage(BaseMessage):
+
+    def post_init(self):
+        self.class_name = "BulkPushMessage"
+
+
+class BulkPushMessageReceived(BulkPushMessage):
+    pass
+
+
+class BulkPushMessageSent(BulkPushMessage):
+    pass
+
+
+class BulkPushMessageDropped(BulkPushMessage):
+    pass
+
+
+class FrontierReqMessage(BaseMessage):
+
+    def post_init(self):
+        self.class_name = "FrontierReqMessage"
+
+
+class FrontierReqMessageReceived(FrontierReqMessage):
+    pass
+
+
+class FrontierReqMessageSent(FrontierReqMessage):
+    pass
+
+
+class FrontierReqMessageDropped(FrontierReqMessage):
     pass

@@ -115,11 +115,51 @@ class ChannelNodeIdHandshakeMessageMapper(RelationsMixin, SqlBaseMapperMixin, Me
                     "message.response", "channel"}
 
 
-class TelemetryReqMessageeMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+class TelemetryReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_relation = {"message.header"}
 
 
-class ChannelTelemetryReqMessageeMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+class ChannelTelemetryReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "channel"}
+
+
+class TelemetryAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {'message.header'}
+
+
+class ChannelTelemetryAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {"message.header", "channel"}
+
+
+class BulkPullAccountMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"message.account",
+                   "message.minimum_amount", "message.flags"}
+    sql_relation = {'message.header'}
+
+
+class ChannelBulkPullAccountMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"message.account",
+                   "message.minimum_amount", "message.flags"}
+    sql_relation = {"message.header", "channel"}
+
+
+class FrontierReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"message.start",
+                   "message.age", "message.count"}
+    sql_relation = {'message.header'}
+
+
+class ChannelFrontierReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"message.start",
+                   "message.age", "message.count"}
+    sql_relation = {"message.header", "channel"}
+
+
+class BulkPushtMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_relation = {'message.header'}
+
+
+class ChannelBulkPushtMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_relation = {"message.header", "channel"}
 
 
@@ -140,3 +180,12 @@ class VoteProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixi
 
 class SendingFrontierMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"account", "frontier", "socket.remote_endpoint"}
+
+
+class BulkPullAccountPendingMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"account"}
+    sql_relation = {"channel"}
+
+
+class ElectionConfirmedlMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"root"}
