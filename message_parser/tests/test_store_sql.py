@@ -161,3 +161,75 @@ def test_store_different_messages_to_confirmack_table():
     rows = cursor.fetchall()
     print(rows)
     assert len(rows) == 1
+
+
+def test_store_active_Started():
+    data = {
+        "log_timestamp": "2023-07-28 10:49:26.805",
+        "log_process": "active_transactions",
+        "log_level": "trace",
+        "log_file": None,
+        "log_event": "active_started",
+        "election": {
+            "root": "4026BE6A8459EE671C093F4AE1B6C05F13CF883827DA95548B471D78CA1E5CDF4026BE6A8459EE671C093F4AE1B6C05F13CF883827DA95548B471D78CA1E5CDF",
+            "behaviour": "normal",
+            "state": "passive",
+            "confirmed": False,
+            "winner": "578BE2455A067B4F5796C76903CA19ADBA6CFEBB7A1969F0B5AD299DFE3CC0E3",
+            "tally_amount": "0",
+            "final_tally_amount": "0",
+            "blocks": [
+                {
+                    "type": "state",
+                    "hash": "578BE2455A067B4F5796C76903CA19ADBA6CFEBB7A1969F0B5AD299DFE3CC0E3",
+                    "sideband": {
+                        "successor": "0000000000000000000000000000000000000000000000000000000000000000",
+                        "account": "0000000000000000000000000000000000000000000000000000000000000000",
+                        "balance": "00000000000000000000000000000000",
+                        "height": 2,
+                        "timestamp": 1690541366,
+                        "source_epoch": "epoch_begin",
+                        "details": {
+                            "epoch": "epoch_2",
+                            "is_send": False,
+                            "is_receive": False,
+                            "is_epoch": False
+                        }
+                    },
+                    "account": "9697595FE72336CD35206C0D708F6523CFD06C40D79B439C00C9CC41670FBEBF",
+                    "previous": "4026BE6A8459EE671C093F4AE1B6C05F13CF883827DA95548B471D78CA1E5CDF",
+                    "representative": "39870A8DC9C5D73DB1E53CBB69D5A4A59AAC46C579CB009D2D31C0BFD8058835",
+                    "balance": "00000000000000000000000000000001",
+                    "link": "0000000000000000000000000000000000000000000000000000000000000000",
+                    "signature": "C1DE613980803B4D34E1DF2E4F750AEE782CBFB9F4A2F9D09C27A29E29F7A6591E3AA0B5671C7806E50327B11F5EE993ED41B1CD75ED1C08AFD8ABF0D8EB0509",
+                    "work": 5711933947752905247
+                }
+            ],
+            "votes": [
+                {
+                    "account": "nano_18m7oo1r5gjqtcqyksk7qpwd3xpohj57nr88hktw1tc4o8n11pf9hjo8r4os",
+                    "time": 5510393808356621,
+                    "timestamp": 0,
+                    "hash": "578BE2455A067B4F5796C76903CA19ADBA6CFEBB7A1969F0B5AD299DFE3CC0E3"
+                }
+            ],
+            "tally": [
+                {
+                    "amount": "0",
+                    "hash": "578BE2455A067B4F5796C76903CA19ADBA6CFEBB7A1969F0B5AD299DFE3CC0E3"
+                }
+            ]
+        },
+        "class_name": "ActiveStartedMessage"
+    }
+
+    message = ActiveStartedMessage(data)  # no channels relation
+    storage = SQLiteStorage(':memory:')
+    storage.store_message(message)
+    cursor = storage.repository.conn.cursor()
+    cursor.execute(f"SELECT * FROM activestartedmessage;")
+    stored_message = cursor.fetchone()
+
+    stored_message_dict = dict(
+        zip([column[0] for column in cursor.description], stored_message))
+    # assert stored_message_dict["election_winner"] == "578BE2455A067B4F5796C76903CA19ADBA6CFEBB7A1969F0B5AD299DFE3CC0E3"

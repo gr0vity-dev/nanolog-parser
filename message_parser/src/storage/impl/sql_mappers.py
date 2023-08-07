@@ -4,7 +4,7 @@ from src.storage.impl.sql_relation import RelationsMixin
 
 
 class BlockProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {"result", "hash", "forced"}
+    sql_columns = {"result", "block.hash", "forced"}
     sql_relation = {"block"}
 
 
@@ -17,14 +17,14 @@ class BlocksInQueueMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
 
 
 class ActiveStartedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {'root', 'behaviour', 'state', 'confirmed',
-                   'winner', 'tally_amount', 'final_tally_amount', }
+    sql_columns = {'election.root', 'election.behaviour', 'election.state', 'election.confirmed',
+                   'election.winner', 'election.tally_amount', 'election.final_tally_amount', }
     sql_relation = {"election.blocks", "election.votes", "election.tally"}
 
 
 class ActiveStoppedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {'root', 'behaviour', 'state', 'confirmed',
-                   'winner', 'tally_amount', 'final_tally_amount', }
+    sql_columns = {'election.root', 'election.behaviour', 'election.state', 'election.confirmed',
+                   'election.winner', 'election.tally_amount', 'election.final_tally_amount', }
     sql_relation = {"election.blocks", "election.votes", "election.tally"}
 
 
