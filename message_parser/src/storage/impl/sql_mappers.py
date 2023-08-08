@@ -36,10 +36,16 @@ class ConfirmAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, 
     sql_columns = {"vote_type", "vote_count"}
     sql_relation = {"message.header", "message.vote"}
 
+    def get_indices(self):
+        return [("vote_type", )]
+
 
 class ChannelConfirmAckMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"vote_type", "vote_count"}
     sql_relation = {"message.header", "message.vote", "channel"}
+
+    def get_indices(self):
+        return [("vote_type", )]
 
 
 class ConfirmReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
@@ -187,5 +193,9 @@ class BulkPullAccountPendingMessageMapper(RelationsMixin, SqlBaseMapperMixin, Me
     sql_relation = {"channel"}
 
 
-class ElectionConfirmedlMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
+class ElectionConfirmedMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"root"}
+
+
+class VotesProcessedMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"blocks_processed", "process_duration", "process_rate"}

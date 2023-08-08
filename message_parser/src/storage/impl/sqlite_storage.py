@@ -5,7 +5,7 @@ from src.storage.impl.sql_message_maps import MessageMapperRegistry
 class SQLiteStorage:
 
     def __init__(self, db_name):
-        self.repository = SQLiteRepository(db_name)
+        self.repository = SQLiteRepository(db_name, batch_size=25000)
 
     def store_message(self, message):
         mapper = MessageMapperRegistry.get_mapper_for_message(message)
@@ -39,16 +39,14 @@ class SQLiteRepository:
         self.cursor.execute("PRAGMA journal_mode=WAL")
         self.batch_size = batch_size
         self.batch_count = 0
-
-    def create_index(self, table_name, column_name):
-        cursor = self.conn.cursor()
-        cursor.execute(
-            f"CREATE INDEX IF NOT EXISTS index_{table_name}_{column_name} ON {table_name}({column_name});"
-        )
-        self.conn.commit()
+        self.created_tables = set()  # In-memory set to track created tables
 
     def create_table_if_not_exists(self, mapper):
         table_name = mapper.get_table_name()
+
+        if table_name in self.created_tables:
+            return
+
         table_schema = mapper.get_table_schema()
         unique_constraints = mapper.get_unique_constraints()
         indices = mapper.get_indices()
@@ -69,6 +67,8 @@ class SQLiteRepository:
             query = f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({', '.join(columns)});"
             self.cursor.execute(query)
             self.maybe_commit()
+
+        self.created_tables.add(table_name)
 
     def insert_data(self, table_name, data):
         placeholders = ', '.join(['?'] * len(data))

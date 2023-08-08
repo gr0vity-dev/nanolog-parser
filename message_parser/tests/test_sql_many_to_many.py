@@ -12,6 +12,14 @@ COMMON_PROPERTIES = [
 ]
 
 
+def test_store_votesprocessed_message():
+    line = '[2023-07-28 21:44:20.599] [vote_processor] [debug] Processed 107 votes in 702 milliseconds (rate of 152 votes per second)'
+    properties = COMMON_PROPERTIES + \
+        ["blocks_processed", "process_duration", "process_rate"]
+    store_message_test(line, VotesProcessedMessage,
+                       properties, [])
+
+
 def test_store_bulkpush_message_sent():
     line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_sent" message={ header={ type="bulk_push", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=0 } }, channel={ endpoint="[::ffff:192.168.112.4]:17075", peering_endpoint="[::ffff:192.168.112.4]:17075", node_id="0000000000000000000000000000000000000000000000000000000000000000", socket={ remote_endpoint="[::ffff:192.168.112.4]:17075", local_endpoint="[::ffff:192.168.112.2]:50174" } }'
     properties = COMMON_PROPERTIES
@@ -61,7 +69,7 @@ def test_store_bulkpullaccount_message():
 def test_store_electionconfirmed():
     line = '[2023-07-28 21:43:45.598] [election] [trace] "election_confirmed" root="AE75487D696A575088A5A43B927DFE86C6B5EA831B015DAE50C1525AE16A8C56AE75487D696A575088A5A43B927DFE86C6B5EA831B015DAE50C1525AE16A8C56"'
     properties = COMMON_PROPERTIES + ["root"]
-    store_message_test(line, ElectionConfirmedlMessage, properties, [])
+    store_message_test(line, ElectionConfirmedMessage, properties, [])
 
 
 def test_store_bulkpullaccountclient_requesting_pending():

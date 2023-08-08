@@ -172,7 +172,7 @@ class ElectionGenerateVoteFinalMessage(BaseMessage):
     pass
 
 
-class ElectionConfirmedlMessage(BaseMessage):
+class ElectionConfirmedMessage(BaseMessage):
     pass
 
 
@@ -187,40 +187,6 @@ class FlushMessage(BaseMessage):
 
 class BlockProcessedMessage(BaseMessage):
     pass
-
-
-class ProcessedBlocksMessage(BaseMessage):
-
-    def post_init(self):
-        self.processed_blocks, self.forced_blocks, self.process_time = self.extract_block_info(
-            self.content)
-
-    def extract_block_info(self, line):
-        match = re.search(
-            r'Processed (\d+) blocks \((\d+) forced\) in (\d+) milliseconds',
-            line)
-        if match:
-            return int(match.group(1)), int(match.group(2)), int(
-                match.group(3))
-        else:
-            return None, None, None
-
-
-class BlocksInQueueMessage(BaseMessage):
-
-    def post_init(self):
-        self.blocks_in_queue, self.state_blocks, self.forced_blocks = self.extract_block_counts(
-            self.content)
-
-    def extract_block_counts(self, line):
-        match = re.search(
-            r'(\d+) blocks \(\+ (\d+) state blocks\) \(\+ (\d+) forced\)',
-            line)
-        if match:
-            return int(match.group(1)), int(match.group(2)), int(
-                match.group(3))
-        else:
-            return None, None, None
 
 
 class BlockProcessorMessage(BaseMessage):
@@ -254,9 +220,7 @@ class BulkPullAccountPendingMessage(BaseMessage):
 
 
 class BulkPullAccountMessage(BaseMessage):
-
-    def post_init(self):
-        self.class_name = "BulkPullAccountMessage"
+    pass
 
 
 class BulkPullAccountMessageReceived(BulkPullAccountMessage):
@@ -272,9 +236,7 @@ class BulkPullAccountMessageDropped(BulkPullAccountMessage):
 
 
 class BulkPushMessage(BaseMessage):
-
-    def post_init(self):
-        self.class_name = "BulkPushMessage"
+    pass
 
 
 class BulkPushMessageReceived(BulkPushMessage):
@@ -290,9 +252,7 @@ class BulkPushMessageDropped(BulkPushMessage):
 
 
 class FrontierReqMessage(BaseMessage):
-
-    def post_init(self):
-        self.class_name = "FrontierReqMessage"
+    pass
 
 
 class FrontierReqMessageReceived(FrontierReqMessage):
@@ -305,3 +265,54 @@ class FrontierReqMessageSent(FrontierReqMessage):
 
 class FrontierReqMessageDropped(FrontierReqMessage):
     pass
+
+
+class ProcessedBlocksMessage(BaseMessage):
+
+    def post_init(self):
+        self.processed_blocks, self.forced_blocks, self.process_time = self.extract_block_info(
+            self.content)
+
+    def extract_block_info(self, message_content):
+        match = re.search(
+            r'Processed (\d+) blocks \((\d+) forced\) in (\d+) milliseconds',
+            message_content)
+        if match:
+            return int(match.group(1)), int(match.group(2)), int(
+                match.group(3))
+        else:
+            return None, None, None
+
+
+class BlocksInQueueMessage(BaseMessage):
+
+    def post_init(self):
+        self.blocks_in_queue, self.state_blocks, self.forced_blocks = self.extract_block_counts(
+            self.content)
+
+    def extract_block_counts(self, message_content):
+        match = re.search(
+            r'(\d+) blocks \(\+ (\d+) state blocks\) \(\+ (\d+) forced\)',
+            message_content)
+        if match:
+            return int(match.group(1)), int(match.group(2)), int(
+                match.group(3))
+        else:
+            return None, None, None
+
+
+class VotesProcessedMessage(BaseMessage):
+
+    def post_init(self):
+        self.blocks_processed, self.process_duration, self.process_rate = self.extract_block_counts(
+            self.content)
+
+    def extract_block_counts(self, message_content):
+        match = re.search(
+            r'Processed (\d+) votes in (\d+) milliseconds \(rate of (\d+) votes per second\)',
+            message_content)
+        if match:
+            return int(match.group(1)), int(match.group(2)), int(
+                match.group(3))
+        else:
+            return None, None, None

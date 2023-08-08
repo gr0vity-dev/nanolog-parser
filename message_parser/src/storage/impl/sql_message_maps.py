@@ -67,7 +67,8 @@ class MessageMapperRegistry:
         VoteProcessedMessage: VoteProcessedMessageMapper,
         SendingFrontierMessage: SendingFrontierMessageMapper,
         BulkPullAccountPendingMessage: BulkPullAccountPendingMessageMapper,
-        ElectionConfirmedlMessage: ElectionConfirmedlMessageMapper,
+        ElectionConfirmedMessage: ElectionConfirmedMessageMapper,
+        VotesProcessedMessage: VotesProcessedMessageMapper,
 
         UnknownMessage: UnknownMessageMapper,
     }

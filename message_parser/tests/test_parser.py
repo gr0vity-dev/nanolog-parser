@@ -82,6 +82,12 @@ def test_message_parsing():
     assert message.log_event == 'message_received'
 
 
+def test_rpc_parsing():
+    line = '[2023-07-28 21:44:20.697] [rpc_request] [debug] Request 0x7f9ba0043420 : {"action":"block_count"}'
+    message = MessageFactory.create_message(line)
+    assert message.content == 'Request 0x7f9ba0043420 : {"action":"block_count"}'
+
+
 def test_confirm_req_message():
     line = '[2023-07-15 14:19:44.805] [network] [trace] "message_received" message={ header={ type="confirm_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=4352 }, block=null, roots=[ { root="3903175F5E19C5D772319EC9EB2B8BC4728F669EA4F7DD22BB6699D0A8CA455D", hash="54108799F7FBC6ABCCEF37D7761B019F3FA86DDE8F094AB57BDA1CFE588F3FEA" } ] }'
     log = MessageFactory.create_message(line)

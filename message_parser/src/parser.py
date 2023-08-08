@@ -8,13 +8,18 @@ class Parser:
         self.parsed_messages = []
         self.ignored_lines = 0
 
-    def load_and_parse_file(self, filename):
+    def load_and_parse_file(self, filename, remove_prefix=""):
+
         with open(filename, 'r') as file:
+            # hacky way to put PR names in the log_filename column
+            filename = filename.replace(remove_prefix,
+                                        "").replace("node.log",
+                                                    "").replace(".log", "")
             for line in file:
                 try:
                     message = MessageFactory.create_message(
-                        line,
-                        filename.replace("node_spd_", "").replace(".log", ""))
+                        line, filename
+                    )
                     self.parsed_messages.append(message)
                 except ParseException as exc:
                     print(exc)
