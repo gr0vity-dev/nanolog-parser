@@ -7,6 +7,7 @@ class SQLDataNormalizer:
             "blocks": BlockNormalizer(),
             "votes": VoteNormalizer(),
             "channels": ChannelNormalizer(),
+            "sidebands": SidebandNormalizer(),
         }
 
     def singularize(self, entity: str):
@@ -27,7 +28,17 @@ class SQLDataNormalizer:
     def normalize_sql(self, entity, entries):
         table_name = self.pluralize(entity)
         normalizer = self._normalizers.get(table_name)
-        return normalizer.normalize(entries) if normalizer else entries, table_name
+
+        # Normalize main data and any nested relations
+        normalized_entries = normalizer.normalize(
+            entries) if normalizer else entries
+
+        return normalized_entries, table_name
+
+    # def normalize_sql(self, entity, entries):
+    #     table_name = self.pluralize(entity)
+    #     normalizer = self._normalizers.get(table_name)
+    #     return normalizer.normalize(entries) if normalizer else entries, table_name
 
 
 class NormalizerInterface(ABC):
@@ -38,11 +49,13 @@ class NormalizerInterface(ABC):
 
 
 class BlockNormalizer(NormalizerInterface):
+    def __init__(self):
+        self.sideband_normalizer = SidebandNormalizer()
+
     @staticmethod
-    def remove_sideband(block):
-        if "sideband" in block:
-            block.pop("sideband")
-        return block
+    def extract_sideband(block):
+        """Extract sideband from the block and return it."""
+        return block.pop("sideband", None)
 
     @staticmethod
     def stringify_work(block):
@@ -50,12 +63,68 @@ class BlockNormalizer(NormalizerInterface):
         return block
 
     def normalize(self, blocks):
+        normalized_data = []
+
         if not isinstance(blocks, list):
             blocks = [blocks]
+
         for block in blocks:
-            block = self.remove_sideband(block)
+            sideband = self.extract_sideband(block)
+            sideband = self.sideband_normalizer.normalize(
+                sideband)  # Normalize the sideband
+
+            # Ensure to call this AFTER extracting sideband.
             block = self.stringify_work(block)
-        return blocks
+            normalized_data.append((block, sideband))
+
+        return normalized_data  # Return a list of (block, sideband)
+
+# class BlockNormalizer(NormalizerInterface):
+#     @staticmethod
+#     def remove_sideband(block):
+
+#         block.pop("sideband", None)
+#         return block
+
+#     @staticmethod
+#     def map_sideband(block):
+#         sideband = block.get("sideband", {})
+
+#         # Initialise with values, because sql doesn't treat 2 records with
+#         # NULL values as identical resulting in duplicate entries of teh same block
+#         block["sideband_height"] = 0
+#         block["sideband_subtype"] = ''
+
+#         # Map sideband_height
+#         if "height" in sideband:
+#             block["sideband_height"] = sideband["height"]
+
+#         # Map sideband_subtype
+#         details = sideband.get("details", {})
+#         if details.get("is_receive", False):
+#             block["sideband_subtype"] = "receive"
+#         elif details.get("is_send", False):
+#             block["sideband_subtype"] = "send"
+#         elif details.get("is_send") == False and details.get("is_receive") == False:
+#             block["sideband_subtype"] = "change"
+
+#         # Remove sideband
+#         block.pop("sideband", None)
+
+#         return BlockNormalizer
+
+    # @staticmethod
+    # def stringify_work(block):
+    #     block["work"] = str(block["work"])
+    #     return block
+
+    # def normalize(self, blocks):
+    #     if not isinstance(blocks, list):
+    #         blocks = [blocks]
+    #     for block in blocks:
+    #         block = self.remove_sideband(block)
+    #         block = self.stringify_work(block)
+    #     return blocks
 
 
 class VoteNormalizer(NormalizerInterface):
@@ -130,3 +199,27 @@ class ChannelNormalizer(NormalizerInterface):
             channel = self.remove_socket(channel)
 
         return channels
+
+
+class SidebandNormalizer(NormalizerInterface):
+    @staticmethod
+    def map_details(sideband):
+        details = sideband.get("details", {})
+        if details.get("is_receive", False):
+            sideband["subtype"] = "receive"
+        elif details.get("is_send", False):
+            sideband["subtype"] = "send"
+        elif details.get("is_send") == False and details.get("is_receive") == False:
+            sideband["subtype"] = "change"
+
+        sideband.pop("details", None)
+        return sideband
+
+    def normalize(self, sidebands):
+        if not isinstance(sidebands, list):
+            sidebands = [sidebands]
+
+        for sideband in sidebands:
+            sideband = self.map_details(sideband)
+
+        return sideband

@@ -162,7 +162,7 @@ def test_store_activetransactionsstarted_message():
     properties = COMMON_PROPERTIES + ['election_root', 'election_behaviour', 'election_state',
                                       'election_confirmed', 'election_winner', 'election_tally_amount', 'election_final_tally_amount']
     store_message_test(line, ActiveStartedMessage, properties, [
-                       'blocks', 'votes', 'tallies'])
+                       'blocks', 'votes', 'tallies', 'sidebands'])
 
 
 def test_store_asc_pull_req_message():

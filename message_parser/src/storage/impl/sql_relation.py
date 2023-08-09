@@ -54,6 +54,16 @@ class SqlRelations:
         elif isinstance(data, str) and key_for_string is not None:
             self.create_relation(
                 message_mapper, {key_for_string: data}, table_name)
+        elif isinstance(data, tuple) and len(data) == 2:
+            # Handle block and sideband tuple
+            block, sideband = data
+            self.create_relation(message_mapper, block, table_name)
+
+            # If sideband is not None, add sideband data as a relation of the block
+            if sideband:
+                self.add_relations_from_data(
+                    message_mapper, sideband, "sidebands")
+
         else:
             raise TypeError(
                 f"{type(data)} - Data list must contain either dictionaries or strings (with key_for_string provided)"
@@ -117,19 +127,20 @@ class HashableMapper(MapperMixin, IMapper):
     def get_table_schema(self):
 
         schema = [('id', 'integer primary key')]
-        for key, _ in self.data.items():
-            # if isinstance(value, int):
-            #     schema.append((key, 'integer'))
-            # elif isinstance(value, float):
-            #     schema.append((key, 'real'))
-            # else:  # default to text if it's not int or float
-            schema.append((key, 'text'))
+        for key, value in self.data.items():
+            if isinstance(value, int):
+                schema.append((key, 'integer NOT NULL'))
+            elif isinstance(value, float):
+                schema.append((key, 'real NOT NULL'))
+            else:  # default to text if it's not int or float
+                schema.append((key, 'text NOT NULL'))
         return schema
 
     def get_unique_constraints(self):
         # Unique constraint for all columns, excluding 'id'
         keys = [column for column, _ in self.get_table_schema()
                 if column != 'id']
+        print("KEYS", keys)
         return keys
 
 
