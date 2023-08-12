@@ -63,8 +63,10 @@ class BlockNormalizer(NormalizerInterface):
         return block
 
     def normalize(self, blocks):
-        normalized_data = []
+        if not blocks:
+            return
 
+        normalized_data = []
         if not isinstance(blocks, list):
             blocks = [blocks]
 
@@ -165,6 +167,9 @@ class VoteNormalizer(NormalizerInterface):
         # return vote
 
     def normalize(self, votes):
+        if not votes:
+            return
+
         if not isinstance(votes, list):
             votes = [votes]
 
@@ -192,6 +197,9 @@ class ChannelNormalizer(NormalizerInterface):
         return channel
 
     def normalize(self, channels):
+        if not channels:
+            return
+
         if not isinstance(channels, list):
             channels = [channels]
 
@@ -216,6 +224,9 @@ class SidebandNormalizer(NormalizerInterface):
         return sideband
 
     def normalize(self, sidebands):
+        if not sidebands:
+            return
+
         if not isinstance(sidebands, list):
             sidebands = [sidebands]
 
