@@ -53,13 +53,13 @@ def main():
         print(f"Unsupported format: {args.format}")
         return
 
-    storage = SQLiteStorage(args.db)
-    log_parser = NanoLogParser(formatter, storage)
-    print(f"Storing messages in SQL database: {args.db}\n")
+    with SQLiteStorage(args.db) as storage:
+        log_parser = NanoLogParser(formatter, storage)
+        print(f"Storing messages in SQL database: {args.db}\n")
 
-    with open(args.file, 'r', encoding='utf-8') as file:
-        for line in file:
-            log_parser.process(line.strip(), args.file)
+        with open(args.file, 'r', encoding='utf-8') as file:
+            for line in file:
+                log_parser.process(line.strip(), args.file)
 
     print(f"\nTotal messages processed: {log_parser.message_count}")
     print(f"Messages stored in SQL database: {args.db}")

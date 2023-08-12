@@ -7,6 +7,12 @@ class SQLiteStorage:
     def __init__(self, db_name):
         self.repository = SQLiteRepository(db_name, batch_size=25000)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def store_message(self, message):
         mapper = MessageMapperRegistry.get_mapper_for_message(message)
         table_name, schema, data = mapper.handle_table()
@@ -30,6 +36,9 @@ class SQLiteStorage:
 
         return mapper.sql_id
 
+    def close(self):
+        self.repository.close()
+
 
 class SQLiteRepository:
 
@@ -47,6 +56,8 @@ class SQLiteRepository:
             return
 
         table_schema = mapper.get_table_schema()
+        table_schema = sorted(table_schema, key=lambda col: col[0])
+
         unique_constraints = mapper.get_unique_constraints()
         indices = mapper.get_indices()
 
