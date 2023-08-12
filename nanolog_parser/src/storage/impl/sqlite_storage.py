@@ -1,5 +1,5 @@
 import sqlite3
-from src.storage.impl.sql_message_maps import MessageMapperRegistry
+from nanolog_parser.src.storage.impl.sql_message_maps import MessageMapperRegistry
 
 
 class SQLiteStorage:
@@ -43,7 +43,6 @@ class SQLiteRepository:
 
     def create_table_if_not_exists(self, mapper):
         table_name = mapper.get_table_name()
-
         if table_name in self.created_tables:
             return
 

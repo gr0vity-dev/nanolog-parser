@@ -1,6 +1,6 @@
-from src.parser import MessageFactory
-from src.messages import *
-from src.storage.impl.sqlite_storage import SQLiteStorage
+from nanolog_parser.src.parser import MessageFactory
+from nanolog_parser.src.messages import *
+from nanolog_parser.src.storage.impl.sqlite_storage import SQLiteStorage
 import json
 import random
 import string
@@ -162,13 +162,14 @@ def test_store_activetransactionsstarted_message():
     properties = COMMON_PROPERTIES + ['election_root', 'election_behaviour', 'election_state',
                                       'election_confirmed', 'election_winner', 'election_tally_amount', 'election_final_tally_amount']
     store_message_test(line, ActiveStartedMessage, properties, [
-                       'blocks', 'votes', 'tallies', 'sidebands'])
+                       'blocks', 'votes', 'tallies'])
 
 
 def test_store_asc_pull_req_message():
     line = '[2023-07-15 14:19:45.832] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
+    line = '[2023-08-08 19:10:00.332] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=34 }, type="blocks", id=11410925922915025654, start="42FBDAD4C956B3E2B6576E85C14CFA6D4C8A007E497BDDAA6F23E741A3F56CFF", start_type="block", count=128 }'
     properties = COMMON_PROPERTIES + [
-        'message_id', 'message_start', 'message_start_type', 'message_count'
+        'message_id', 'message_start', 'message_start_type', 'message_type', 'message_count'
     ]
     store_message_test(line, AscPullReqMessageReceived, properties, "headers")
 
@@ -176,7 +177,7 @@ def test_store_asc_pull_req_message():
 def test_store_asc_pull_req_message_sent():
     line = '[2023-07-28 21:44:01.800] [channel] [trace] "message_sent" message={ header={ type="asc_pull_req", network="test", network_int=21080, version=19, version_min=18, version_max=19, extensions=34 }, type="blocks", id=1057808171588687116, start="1C5A1CDCE811281296FAED6252834B33DDA28B97B7E0C5A01B710F5452BA32FD", start_type="block", count=128 }, channel={ endpoint="[::ffff:192.168.112.6]:17075", peering_endpoint="[::ffff:192.168.112.6]:17075", node_id="2C4327C0B3B302D1696E84D52480890E6FD5373523BACDF39BE45FC88C33FC78", socket={ remote_endpoint="[::ffff:192.168.112.6]:17075", local_endpoint="[::ffff:192.168.112.4]:39184" } }'
     properties = COMMON_PROPERTIES + [
-        'message_id', 'message_start', 'message_start_type', 'message_count'
+        'message_id', 'message_start', 'message_start_type', 'message_type', 'message_count'
     ]
     store_message_test(line, AscPullReqMessageSent, properties, "headers")
 

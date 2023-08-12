@@ -1,6 +1,6 @@
-from src.message_parsers.parser_interface import IMessageToJsonConverter, IMessageTypeIdentifier
-from src.messages import *
-from src.parsing_utils import ParseException
+from nanolog_parser.src.message_parsers.parser_interface import IMessageToJsonConverter, IMessageTypeIdentifier
+from nanolog_parser.src.messages import *
+from nanolog_parser.src.parsing_utils import ParseException
 import re
 
 

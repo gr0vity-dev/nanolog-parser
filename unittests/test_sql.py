@@ -1,6 +1,6 @@
-from src.parser import MessageFactory
-from src.messages import *
-from src.storage.impl.sqlite_storage import SQLiteStorage
+from nanolog_parser.src.parser import MessageFactory
+from nanolog_parser.src.messages import *
+from nanolog_parser.src.storage.impl.sqlite_storage import SQLiteStorage
 import json
 import random
 import string

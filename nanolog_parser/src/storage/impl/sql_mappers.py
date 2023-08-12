@@ -1,6 +1,6 @@
-from src.storage.impl.sql_mixins import SqlBaseMapperMixin, MessageMixin
-from src.storage.impl.sql_mapper_interface import IMapper
-from src.storage.impl.sql_relation import RelationsMixin
+from nanolog_parser.src.storage.impl.sql_mixins import SqlBaseMapperMixin, MessageMixin
+from nanolog_parser.src.storage.impl.sql_mapper_interface import IMapper
+from nanolog_parser.src.storage.impl.sql_relation import RelationsMixin
 
 
 class BlockProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
@@ -54,8 +54,9 @@ class ConfirmReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, 
 
 
 class ChannelConfirmReqkMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {"root_count", "message.block"}
-    sql_relation = {"message.header", "message.roots", "channel"}
+    sql_columns = {"root_count"}
+    sql_relation = {"message.header",
+                    "message.roots", "message.block", "channel"}
 
 
 class ElectionGenerateVoteNormalMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
@@ -100,14 +101,14 @@ class ChannelAscPullAckMessageMapper(RelationsMixin, SqlBaseMapperMixin, Message
 
 class AscPullReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     SqlBaseMapperMixin.set_type("message.id", str)
-    sql_columns = {"message.id", "message.start_type",
+    sql_columns = {"message.id", "message.start_type", "message.type",
                    "message.start", "message.count"}
     sql_relation = {"message.header"}
 
 
 class ChannelAscPullReqMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     SqlBaseMapperMixin.set_type("message.id", str)
-    sql_columns = {"message.id", "message.start_type",
+    sql_columns = {"message.id", "message.start_type", "message.type",
                    "message.start", "message.count"}
     sql_relation = {"message.header", "channel"}
 

@@ -1,8 +1,8 @@
 import pytest
 import tempfile
-from src.parser import Parser, MessageFactory
-from src.messages import *
-from src.parsing_utils import ParseException
+from nanolog_parser.src.parser import Parser, MessageFactory
+from nanolog_parser.src.messages import *
+from nanolog_parser.src.parsing_utils import ParseException
 
 
 def test_message_factory():

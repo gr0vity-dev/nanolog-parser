@@ -1,5 +1,5 @@
-from src.messages import *
-from src.storage.impl.sql_mappers import *
+from nanolog_parser.src.messages import *
+from nanolog_parser.src.storage.impl.sql_mappers import *
 
 
 class MessageMapperRegistry:

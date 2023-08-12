@@ -1,7 +1,7 @@
 
 
-from src.storage.impl.sqlite_storage import SQLiteStorage
-from src.messages import *
+from nanolog_parser.src.storage.impl.sqlite_storage import SQLiteStorage
+from nanolog_parser.src.messages import *
 
 
 def test_store_BlockProcessedMessage():

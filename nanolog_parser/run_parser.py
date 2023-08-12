@@ -1,7 +1,7 @@
 import glob
 import time
-from src.parser import Parser
-from src.storage.impl.sqlite_storage import SQLiteStorage
+from nanolog_parser.src.parser import Parser
+from nanolog_parser.src.storage.impl.sqlite_storage import SQLiteStorage
 
 prefix = "cpu0-2_low_new_"
 do_store = True
