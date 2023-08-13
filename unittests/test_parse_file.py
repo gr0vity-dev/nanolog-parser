@@ -33,6 +33,16 @@ def setup_text_db():
             os.remove(filepath)
 
 
+def execute_sql(dbname, query):
+    rows = []
+    with sqlite3.connect(dbname) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        for row in cursor.fetchall():
+            rows.append(row)
+    return rows
+
+
 def compute_db_hash(db_path: str) -> str:
     """Compute a hash of the database contents."""
     with sqlite3.connect(db_path) as conn:
@@ -81,3 +91,19 @@ def test_parser_json_output(setup_json_db):
     # Step 4: Compare the hash
     expected_hash = "8975958213c406365efef439a2c0e03f3896df8d8901f4122c96a5c29833a4a6"
     assert hash_result == expected_hash, f"Expected {expected_hash}, but got {hash_result}"
+
+
+def test_parser_json_output_with_node(setup_json_db):
+    # Step 2: Execute the parser command
+    dbname = "unittest_json.db"
+    cmd = ["nanologp", "--file", "unittests/data/json.log",
+           "--format", "json", "--db", dbname, "--node", "pr1"]
+    # 'check=True' will raise an error if the command fails
+    subprocess.run(cmd, check=True)
+    rows = execute_sql(
+        dbname, "SELECT * from unknownmessage limit 1")
+
+    result = rows[0][2]
+    # Step 4: Compare the hash
+    expected_result = "pr1"
+    assert result == expected_result, f"Expected {expected_result}, but got {result}"

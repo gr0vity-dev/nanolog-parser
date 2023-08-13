@@ -15,6 +15,8 @@ def get_args():
                         help="Path to the database where parsed messages will be stored.")
     parser.add_argument('--file', type=str,
                         help="Name of the file being parsed.", required=True)
+    parser.add_argument('--node', type=str,
+                        help="Name of node. If provided, instead of 'file', 'node' is written to log_filename ")
 
     return parser.parse_args()
 
@@ -59,7 +61,7 @@ def main():
 
         with open(args.file, 'r', encoding='utf-8') as file:
             for line in file:
-                log_parser.process(line.strip(), args.file)
+                log_parser.process(line.strip(), args.node or args.file)
 
     print(f"\nTotal messages processed: {log_parser.message_count}")
     print(f"Messages stored in SQL database: {args.db}")
