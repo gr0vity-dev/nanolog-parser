@@ -182,11 +182,19 @@ class LogParser():
         self.json_converter = json_converter
         self.message_identifier = message_identifier
 
+    def parse_to_json(self, line: str, file_name: str = None) -> BaseMessage:
+        try:
+            json_log = self.json_converter.convert_to_json(line)
+            json_log["log_file"] = file_name
+            return json_log
+        except Exception as exc:
+            raise ParseException(message=exc) from exc
+
     def parse_log(self, line: str, file_name: str = None) -> BaseMessage:
         try:
-            json = self.json_converter.convert_to_json(line)
-            json["log_file"] = file_name
-            message_class = self.message_identifier.identify_message_type(json)
-            return message_class(json)
+            json_log = self.parse_to_json(line, file_name)
+            message_class = self.message_identifier.identify_message_type(
+                json_log)
+            return message_class(json_log)
         except Exception as exc:
             raise ParseException(message=exc) from exc
