@@ -48,6 +48,32 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
             ('message_received', 'bulk_push'): BulkPushMessageReceived,
         }
         self.common_pattern = {
+            ('network_processed', 'confirm_ack'): ConfirmAckMessageReceived,
+            ('network_processed', 'confirm_req'): ConfirmReqMessageReceived,
+            ('network_processed', 'publish'): PublishMessageReceived,
+            ('network_processed', 'keepalive'): KeepAliveMessageReceived,
+            ('network_processed', 'asc_pull_ack'): AscPullAckMessageReceived,
+            ('network_processed', 'asc_pull_req'): AscPullReqMessageReceived,
+            ('network_processed', 'node_id_handshake'): NodeIdHandshakeMessageReceived,
+            ('network_processed', 'telemetry_req'): TelemetryReqMessageReceived,
+            ('network_processed', 'telemetry_ack'): TelemetryAckMessageReceived,
+            ('network_processed', 'bulk_pull_account'): BulkPullAccountMessageReceived,
+            ('network_processed', 'frontier_req'): FrontierReqMessageReceived,
+            ('network_processed', 'bulk_push'): BulkPushMessageReceived,
+
+            ('channel_sent', 'confirm_ack'): ConfirmAckMessageSent,
+            ('channel_sent', 'confirm_req'): ConfirmReqMessageSent,
+            ('channel_sent', 'publish'): PublishMessageSent,
+            ('channel_sent', 'keepalive'): KeepAliveMessageSent,
+            ('channel_sent', 'asc_pull_ack'): AscPullAckMessageSent,
+            ('channel_sent', 'asc_pull_req'): AscPullReqMessageSent,
+            ('channel_sent', 'node_id_handshake'): NodeIdHandshakeMessageSent,
+            ('channel_sent', 'telemetry_req'): TelemetryReqMessageSent,
+            ('channel_sent', 'telemetry_ack'): TelemetryAckMessageSent,
+            ('channel_sent', 'bulk_pull_account'): BulkPullAccountMessageSent,
+            ('channel_sent', 'frontier_req'): FrontierReqMessageSent,
+            ('channel_sent', 'bulk_push'): BulkPushMessageSent,
+
             ("election", "generate_vote_normal"): ElectionGenerateVoteNormalMessage,
             ("election", "generate_vote_final"): ElectionGenerateVoteFinalMessage,
             ("election", "election_confirmed"): ElectionConfirmedMessage,
@@ -81,10 +107,7 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
         if log_process == 'channel':
             header_type = json["message"].get('header', {}).get('type')
             return self.get_channel.get((log_event, header_type), UnknownMessage)
-        # elif log_process == 'channel_sent':
-        #     header_type = json["message"].get('header', {}).get('type')
-        #     return self.get_channel.get((log_event, header_type), UnknownMessage)
-        elif log_process == 'network_processed':
+        elif log_process == 'network':
             header_type = json["message"].get('header', {}).get('type')
             return self.get_network.get((log_event, header_type), UnknownMessage)
         elif log_event is not None:

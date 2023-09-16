@@ -74,7 +74,7 @@ def test_store_frontierreq_message_dropped():
                        properties, ["headers", "channels"])
 
 
-def test_store_bulkpullaccount_message():
+def test_store_bulkpullaccount_message_sent():
     line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_sent" message: { header: { type: "bulk_pull_account", network: "test", network_int: 21080, version: 19, version_min: 18, version_max: 19, extensions: 0 }, account: "04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57", minimum_amount: "000000000000D3C21BCECCEDA1000000", flags: 0 }, channel: { endpoint: "[::ffff:192.168.112.4]:17075", peering_endpoint: "[::ffff:192.168.112.4]:17075", node_id: "0000000000000000000000000000000000000000000000000000000000000000", socket: { remote_endpoint: "[::ffff:192.168.112.4]:17075", local_endpoint: "[::ffff:192.168.112.2]:46806" } }'
     properties = COMMON_PROPERTIES + \
         ["message_account", "message_minimum_amount", "message_flags"]
@@ -82,7 +82,7 @@ def test_store_bulkpullaccount_message():
                        properties, ["headers", "channels"])
 
 
-def test_store_bulkpullaccount_message():
+def test_store_bulkpullaccount_message_dropped():
     line = '[2023-07-28 21:45:58.801] [channel] [trace] "message_dropped" message: { header: { type: "bulk_pull_account", network: "test", network_int: 21080, version: 19, version_min: 18, version_max: 19, extensions: 0 }, account: "04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57", minimum_amount: "000000000000D3C21BCECCEDA1000000", flags: 0 }, channel: { endpoint: "[::ffff:192.168.112.4]:17075", peering_endpoint: "[::ffff:192.168.112.4]:17075", node_id: "0000000000000000000000000000000000000000000000000000000000000000", socket: { remote_endpoint: "[::ffff:192.168.112.4]:17075", local_endpoint: "[::ffff:192.168.112.2]:46806" } }'
     properties = COMMON_PROPERTIES + \
         ["message_account", "message_minimum_amount", "message_flags"]
@@ -275,7 +275,7 @@ def test_store_channel_confirm_req_dropped():
 
 def test_store_confirm_ack_message():
     # Prepare a sample ConfirmAckMessage
-    line = '[2023-07-15 14:19:44.951] [network_processed] [trace] "message_received"message: { header: { type: "confirm_ack", network: "test", network_int: 21080, version: 19, version_min: 18, version_max: 19, extensions: 12544 }, vote: { account: "398562D3A2945BE17E6676B3E43603E160142A0A555E85071E5A10D04010D8EC", timestamp: 18446744073709551615, hashes: [ "FCB10EFE9E49D53BCD9A94D68D5FD1776BEF80852BAB639AF271741ECB9B1F53", "FE88DB46449506C1CC1EBEF0EDC46408342954F6A9324AD350E14966DBDF38FA", "FEFC0B7BC9285E464607631EDCD0D181F40BCB9EEBA4AA27F0374B2FCDEA011A" ] } }'
+    line = '[2023-09-16 14:55:26.709] [network_processed] [trace] "confirm_ack" message: { header: { type: "confirm_ack", network: "test", network_int: 21080, version: 19, version_min: 18, version_max: 19, extensions: 49408 }, vote: { account: "04BD6D942F527F887196868C8927FF84340B4A9AC491BE69DB3AFC31AAF36F57", timestamp: 1694876126713, hashes: [ "78B11BCD0BF111384F55BB35278440D359277B76617D09A7B9CE9B9D926091AC", "7B4701FD467FCCECE440BF282018BC378DC86437785271096DCD1D2B44AC3AB5", "7F8C2635A34955EA5309132AAD50283A8572F84F7DA52C99516B90C35F571B80", "832C898424A5BB8CE14E3A0034458088A6FCBDCFA937BB3D725C0F5A1F5CC90B", "8551457C54F1D71E62023F61945FB20AA6D462825F99316621ECD3694A38242E", "863217576F3355A7BE405E8E2891D190C83977CF15307326BCD4A3A0A08E8881", "87200E8C3271228AEF3C0308657C786CA12E4E85C66B6B1F142294DF0064B814", "898F8FE37B73231EE172B5B7FE447B3BFC7F752AB55E7DA594EFED4FE4C3E11F", "8C7117D649362D0AB2A4AEF870B39CC6014242099642F7939E9D7280273F8421", "8C78C19FB1555918E45F6E5ADCEFB4EA53464D33CB58680EBBDF919DD3D622C1", "8D55C5FA0E3C82317DFCAEC8D8BF42735B74937425C59296B54C1FBC903CA585", "8DCA1298D8885AE6219C0A013F5189F2B5678844B13E4F5AFBD09ECA511C5B6E" ] } }'
     properties = COMMON_PROPERTIES + ['vote_count']
     store_message_test(line, ConfirmAckMessageReceived, properties,
                        ['votes', 'headers'])
