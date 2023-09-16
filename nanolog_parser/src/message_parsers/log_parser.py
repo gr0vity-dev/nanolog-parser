@@ -51,6 +51,7 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
             ("election", "generate_vote_normal"): ElectionGenerateVoteNormalMessage,
             ("election", "generate_vote_final"): ElectionGenerateVoteFinalMessage,
             ("election", "election_confirmed"): ElectionConfirmedMessage,
+            ("election", "broadcast_vote"): ElectionBroadcastVoteMessage,
             ("confirmation_solicitor", "broadcast"): BroadcastMessage,
             ("confirmation_solicitor", "flush"): FlushMessage,
             ("blockprocessor", "block_processed"): BlockProcessedMessage,
@@ -60,6 +61,8 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
             ("vote_processor", "vote_processed"): VoteProcessedMessage,
             ("frontier_req_server", "sending_frontier"): SendingFrontierMessage,
             ("bulk_pull_account_client", "requesting_pending"): BulkPullAccountPendingMessage,
+            ("election_scheduler", "block_activated"): SchedulerBlockActivatedMessage,
+            ("vote_generator", "candidate_processed"): VoteGeneratorCandidateProcessedMessage,
         }
         self.content_based_identifiers = {
             "blockprocessor": {
@@ -78,7 +81,10 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
         if log_process == 'channel':
             header_type = json["message"].get('header', {}).get('type')
             return self.get_channel.get((log_event, header_type), UnknownMessage)
-        elif log_process == 'network':
+        # elif log_process == 'channel_sent':
+        #     header_type = json["message"].get('header', {}).get('type')
+        #     return self.get_channel.get((log_event, header_type), UnknownMessage)
+        elif log_process == 'network_processed':
             header_type = json["message"].get('header', {}).get('type')
             return self.get_network.get((log_event, header_type), UnknownMessage)
         elif log_event is not None:
@@ -112,7 +118,7 @@ class MessageAttributeParser:
 
     @staticmethod
     def _add_quotes_to_keys_fast(logline):
-        words = logline.split('=')
+        words = logline.split(': ')
         for i in range(len(words) - 1):
             last_space = words[i].rfind(' ')
             if last_space != -1:

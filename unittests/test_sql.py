@@ -24,7 +24,7 @@ NETWORK_COMMON_PROPERTIES = COMMON_PROPERTIES + [
 
 
 # def test_store_publish_message():
-#     line = '[2023-07-15 14:19:48.286] [network] [trace] "message_received" message={ header={ type="publish", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=1536 }, block={ type="state", hash="160F1EF61CFC73D2DBF2B249AA38B9965BF441EEF4312E9A89BDB58A22CF32FE", account="EBB66C545B0ED5F248256E281E13B09829518435C4C05E705BB70F2DF625E060", previous="9C490F4525EA5E6EAA4E76869B7073D5BD452D11B2CEB6CC34353856519D2075", representative="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", balance="00000000000000000000000000000000", link="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", signature="E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D", work=10530317739669255306 } }'
+#     line = '[2023-07-15 14:19:48.286] [network_processed] [trace] "message_received" message={ header={ type="publish", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=1536 }, block={ type="state", hash="160F1EF61CFC73D2DBF2B249AA38B9965BF441EEF4312E9A89BDB58A22CF32FE", account="EBB66C545B0ED5F248256E281E13B09829518435C4C05E705BB70F2DF625E060", previous="9C490F4525EA5E6EAA4E76869B7073D5BD452D11B2CEB6CC34353856519D2075", representative="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", balance="00000000000000000000000000000000", link="F11A22A0340C7931C6C6288280A0F6ACF8F052BED2C929493883388B1776ADA2", signature="E7B0E3315C52085F4EB4C00462B3394983B84216860370B50DF85A17664CEB58ED76F0EA2699BBFFD15BB84578681C4A5E0FCA67685BB882F80C329C5C818F0D", work=10530317739669255306 } }'
 #     properties = NETWORK_COMMON_PROPERTIES + [
 #         'block_type', 'hash', 'account', 'previous', 'representative',
 #         'balance', 'link', 'signature'
@@ -33,14 +33,14 @@ NETWORK_COMMON_PROPERTIES = COMMON_PROPERTIES + [
 
 
 # def test_store_keepalive_message():
-#     line = '[2023-07-15 14:19:44.867] [network] [trace] "message_received" message={ header={ type="keepalive", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=0 }, peers=[ "[::ffff:94.130.135.50]:7075", "[::]:0", "[::ffff:174.138.4.198]:7075", "[::ffff:54.77.3.59]:7075", "[::ffff:139.180.168.194]:7075", "[::ffff:98.35.209.116]:7075", "[::ffff:154.26.158.112]:7075", "[::ffff:13.213.221.153]:7075" ] }'
+#     line = '[2023-07-15 14:19:44.867] [network_processed] [trace] "message_received" message={ header={ type="keepalive", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=0 }, peers=[ "[::ffff:94.130.135.50]:7075", "[::]:0", "[::ffff:174.138.4.198]:7075", "[::ffff:54.77.3.59]:7075", "[::ffff:139.180.168.194]:7075", "[::ffff:98.35.209.116]:7075", "[::ffff:154.26.158.112]:7075", "[::ffff:13.213.221.153]:7075" ] }'
 #     properties = NETWORK_COMMON_PROPERTIES
 #     json_properties = ['peers']
 #     store_message(line, KeepAliveMessage, properties, json_properties)
 
 
 # def test_store_asc_pull_req_message():
-#     line = '[2023-07-15 14:19:45.832] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
+#     line = '[2023-07-15 14:19:45.832] [network_processed] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
 #     properties = NETWORK_COMMON_PROPERTIES + [
 #         'id', 'start', 'start_type', 'count'
 #     ]
@@ -49,7 +49,7 @@ NETWORK_COMMON_PROPERTIES = COMMON_PROPERTIES + [
 
 def test_store_filename_in_message():
     filename = 'sample_log.log'
-    line = '[2023-07-15 14:19:45.832] [network] [trace] "message_received" message={ header={ type="asc_pull_req", network="live", network_int=21059, version=19, version_min=18, version_max=19, extensions=34 }, id=12094529471189612132, start="62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type="account", count=128 }'
+    line = '[2023-07-15 14:19:45.832] [network_processed] [trace] "message_received" message: { header: { type: "asc_pull_req", network: "live", network_int: 21059, version: 19, version_min: 18, version_max: 19, extensions: 34 }, id: 12094529471189612132, start: "62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type: "account", count: 128 }'
     properties = COMMON_PROPERTIES + ['log_file']
     store_message(line, AscPullReqMessage, properties, filename=filename)
 
@@ -68,19 +68,19 @@ def test_store_filename_in_message():
 
 
 def test_store_broadcast_message():
-    line = '[2023-07-20 08:37:49.297] [confirmation_solicitor] [trace] "broadcast" channel="[::ffff:192.168.160.6]:17075", hash="F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D"'
+    line = '[2023-07-20 08:37:49.297] [confirmation_solicitor] [trace] "broadcast" channel: "[::ffff:192.168.160.6]:17075", hash: "F39BF0D09AF3D80DF00253A47EA5C33CD15F70F9B748FD745C69DF5E3D22428D"'
     properties = COMMON_PROPERTIES + ['log_event', 'channel', 'hash']
     store_message(line, BroadcastMessage, properties)
 
 
 def test_store_generate_vote_normal_message():
-    line = '[2023-07-20 08:20:51.401] [election] [trace] "generate_vote_normal" root="686C685B1CEF83843D6A5AD85EE685A6F6C394CB7C2E3B2B611CFA2B4DA566A3", hash="3A8867A4E61F181FC3B43B8E6BE5CBC860E35E6C7D3204EBB3557B2B6A514423"'
+    line = '[2023-07-20 08:20:51.401] [election] [trace] "generate_vote_normal" root: "686C685B1CEF83843D6A5AD85EE685A6F6C394CB7C2E3B2B611CFA2B4DA566A3", hash: "3A8867A4E61F181FC3B43B8E6BE5CBC860E35E6C7D3204EBB3557B2B6A514423"'
     properties = COMMON_PROPERTIES + ['log_event', 'root', 'hash']
     store_message(line, ElectionGenerateVoteNormalMessage, properties)
 
 
 def test_store_generate_vote_final_message():
-    line = '[2023-07-20 08:41:38.398] [election] [trace] "generate_vote_final" root="355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE", hash="D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"'
+    line = '[2023-07-20 08:41:38.398] [election] [trace] "generate_vote_final" root: "355D17A4AC91A73D31BE8E4F2874298255F7A8905CCC11DDF43462E1A71FD0AE", hash: "D05F1BB72F02E6F0C73D85DFCF09F8B8C32C258E9CA75943487CF74BD5C7B9A2"'
     properties = COMMON_PROPERTIES + ['log_event', 'root', 'hash']
     store_message(line, ElectionGenerateVoteFinalMessage, properties)
 

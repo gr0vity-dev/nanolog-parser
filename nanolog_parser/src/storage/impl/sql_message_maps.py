@@ -69,6 +69,9 @@ class MessageMapperRegistry:
         BulkPullAccountPendingMessage: BulkPullAccountPendingMessageMapper,
         ElectionConfirmedMessage: ElectionConfirmedMessageMapper,
         VotesProcessedMessage: VotesProcessedMessageMapper,
+        SchedulerBlockActivatedMessage: SchedulerBlockActivatedMessageMapper,
+        ElectionBroadcastVoteMessage: ElectionBroadcastVoteMessageMapper,
+        VoteGeneratorCandidateProcessedMessage: VoteGeneratorCandidateProcessedMessageMapper,
 
         UnknownMessage: UnknownMessageMapper,
     }

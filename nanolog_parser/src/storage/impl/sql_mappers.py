@@ -200,3 +200,18 @@ class ElectionConfirmedMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
 
 class VotesProcessedMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"blocks_processed", "process_duration", "process_rate"}
+
+
+class SchedulerBlockActivatedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"account", "time", "priority"}
+    sql_relation = {"block"}
+
+
+class ElectionBroadcastVoteMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"id", "root", "type", "winner.hash"}
+    sql_relation = {"winner"}
+
+
+class VoteGeneratorCandidateProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
+    sql_columns = {"should_vote", "is_final"}
+    sql_relation = {"block"}

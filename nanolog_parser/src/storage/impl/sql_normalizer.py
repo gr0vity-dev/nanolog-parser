@@ -7,6 +7,7 @@ class SQLDataNormalizer:
             "blocks": BlockNormalizer(),
             "votes": VoteNormalizer(),
             "channels": ChannelNormalizer(),
+            "winners": BlockNormalizer(),
         }
 
     def singularize(self, entity: str):

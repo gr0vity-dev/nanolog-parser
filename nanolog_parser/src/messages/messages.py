@@ -316,3 +316,15 @@ class VotesProcessedMessage(BaseMessage):
                 match.group(3))
         else:
             return None, None, None
+
+
+class SchedulerBlockActivatedMessage(BaseMessage):
+    pass
+
+
+class ElectionBroadcastVoteMessage(BaseMessage):
+    pass
+
+
+class VoteGeneratorCandidateProcessedMessage(BaseMessage):
+    pass
