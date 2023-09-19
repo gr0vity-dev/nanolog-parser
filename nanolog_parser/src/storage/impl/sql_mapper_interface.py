@@ -28,7 +28,7 @@ class IMapper(ABC):
         pass
 
     @abstractmethod
-    def convert_related_ids(self, id_mappings):
+    def convert_related_ids(self, id_mappings, message=None):
         pass
 
     @abstractmethod

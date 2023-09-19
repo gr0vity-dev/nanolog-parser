@@ -85,14 +85,15 @@ class LinkMapper(MapperMixin, IMapper):
 
     def get_table_schema(self):
         return [('message_type', 'text'), ('message_id', 'integer'),
-                ('relation_type', 'text'), ('relation_id', 'integer')]
+                ('relation_type', 'text'), ('relation_id', 'integer'), ('log_timestamp', 'string')]
 
     def is_dependent(self):
         return True
 
-    def convert_related_ids(self, id_mappings):
+    def convert_related_ids(self, id_mappings, message):
         if self.data['relation_id'] in id_mappings:
             self.data['relation_id'] = id_mappings[self.data['relation_id']]
+        self.data['log_timestamp'] = message.log_timestamp
         return self.to_dict()
 
     def get_indices(self):

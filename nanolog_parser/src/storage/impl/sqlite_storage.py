@@ -26,7 +26,8 @@ class SQLiteStorage:
 
             self.repository.create_table_if_not_exists(related_mapper)
             if related_mapper.is_dependent():
-                mapped_data = related_mapper.convert_related_ids(id_mappings)
+                mapped_data = related_mapper.convert_related_ids(
+                    id_mappings, message)
                 related_mapper.sql_id = self.repository.insert_data(
                     related_table_name, mapped_data)
             else:
