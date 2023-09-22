@@ -37,21 +37,21 @@ class MessageMixin(MapperMixin):
 
     def to_dict(self):
         return {
-            'log_timestamp': self.message.log_timestamp,
-            'log_process': self.message.log_process,
-            'log_level': self.message.log_level,
-            'log_event': self.message.log_event,
-            'log_file': self.message.log_file,
+            # 'log_timestamp': self.message.log_timestamp,
+            # 'log_process': self.message.log_process,
+            # 'log_level': self.message.log_level,
+            # 'log_event': self.message.log_event,
+            # 'log_file': self.message.log_file,
         }
 
     def get_table_schema(self):
         return [
             ('sql_id', 'integer primary key autoincrement'),
-            ('log_timestamp', 'text'),
-            ('log_process', 'text'),
-            ('log_level', 'text'),
-            ('log_event', 'text'),
-            ('log_file', 'text'),
+            # ('log_timestamp', 'text'),
+            # ('log_process', 'text'),
+            # ('log_level', 'text'),
+            # ('log_event', 'text'),
+            # ('log_file', 'text'),
         ]
 
     @property
@@ -90,12 +90,25 @@ class SqlBaseMapperMixin(DataResolverMixin, MapperMixin):
 
     sql_columns = set()
     column_types = {}  # New dictionary to store explicit types for columns
+    add_columns_dynamic = True
 
     @classmethod  # Making this a classmethod so it can be used directly on the class
     def set_type(cls, column, column_type):
         cls.column_types[column] = column_type
 
+    def get_message_keys(self):
+        """Get attribute names from the message object that are not nested structures."""
+        valid_types = (int, float, str, bool, bytes, type(None)
+                       )  # Simple types we want to consider
+        return set(attr for attr in dir(self.message)
+                   if not callable(getattr(self.message, attr))
+                   and not (attr.startswith("_") or attr == "content" or attr == "class_name")
+                   and isinstance(getattr(self.message, attr), valid_types))
+
     def to_dict(self):
+        # Update the sql_columns with keys from the message
+        self.sql_columns |= self.get_message_keys(
+        ) if self.add_columns_dynamic else self.sql_columns
         base_dict = super().to_dict()
         columns_dict = self._resolve_all_keys(self.sql_columns)
 

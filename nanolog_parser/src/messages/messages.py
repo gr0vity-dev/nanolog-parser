@@ -328,3 +328,7 @@ class ElectionBroadcastVoteMessage(BaseMessage):
 
 class VoteGeneratorCandidateProcessedMessage(BaseMessage):
     pass
+
+
+class ChannelSendResultMessage(BaseMessage):
+    pass

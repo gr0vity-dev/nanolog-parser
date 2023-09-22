@@ -72,6 +72,7 @@ class MessageMapperRegistry:
         SchedulerBlockActivatedMessage: SchedulerBlockActivatedMessageMapper,
         ElectionBroadcastVoteMessage: ElectionBroadcastVoteMessageMapper,
         VoteGeneratorCandidateProcessedMessage: VoteGeneratorCandidateProcessedMessageMapper,
+        ChannelSendResultMessage: ChannelSendResultMessageMapper,
 
         UnknownMessage: UnknownMessageMapper,
     }

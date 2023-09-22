@@ -98,7 +98,7 @@ class LinkMapper(MapperMixin, IMapper):
 
     def get_indices(self):
         # Create an index for each column
-        return [(column, ) for column, _ in self.get_table_schema()]
+        return [(column, ) for column, _ in self.get_table_schema()[:-1]]
 
 # HashableMapper
 

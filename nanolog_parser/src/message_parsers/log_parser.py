@@ -7,46 +7,6 @@ import re
 class MessageTypeIdentifier(IMessageTypeIdentifier):
 
     def __init__(self):
-        self.get_channel = {
-            ('message_sent', 'confirm_ack'): ConfirmAckMessageSent,
-            ('message_sent', 'confirm_req'): ConfirmReqMessageSent,
-            ('message_sent', 'publish'): PublishMessageSent,
-            ('message_sent', 'keepalive'): KeepAliveMessageSent,
-            ('message_sent', 'asc_pull_ack'): AscPullAckMessageSent,
-            ('message_sent', 'asc_pull_req'): AscPullReqMessageSent,
-            ('message_sent', 'node_id_handshake'): NodeIdHandshakeMessageSent,
-            ('message_sent', 'telemetry_req'): TelemetryReqMessageSent,
-            ('message_sent', 'telemetry_ack'): TelemetryAckMessageSent,
-            ('message_sent', 'bulk_pull_account'): BulkPullAccountMessageSent,
-            ('message_sent', 'frontier_req'): FrontierReqMessageSent,
-            ('message_sent', 'bulk_push'): BulkPushMessageSent,
-            ('message_dropped', 'confirm_ack'): ConfirmAckMessageDropped,
-            ('message_dropped', 'confirm_req'): ConfirmReqMessageDropped,
-            ('message_dropped', 'publish'): PublishMessageDropped,
-            ('message_dropped', 'keepalive'): KeepAliveMessageDropped,
-            ('message_dropped', 'asc_pull_ack'): AscPullAckMessageDropped,
-            ('message_dropped', 'asc_pull_req'): AscPullReqMessageDropped,
-            ('message_dropped', 'node_id_handshake'): NodeIdHandshakeMessageDropped,
-            ('message_dropped', 'telemetry_req'): TelemetryReqMessageDropped,
-            ('message_dropped', 'telemetry_ack'): TelemetryAckMessageDropped,
-            ('message_dropped', 'bulk_pull_account'): BulkPullAccountMessageDropped,
-            ('message_dropped', 'frontier_req'): FrontierReqMessageDropped,
-            ('message_dropped', 'bulk_push'): BulkPushMessageDropped,
-        }
-        self.get_network = {
-            ('message_received', 'confirm_ack'): ConfirmAckMessageReceived,
-            ('message_received', 'confirm_req'): ConfirmReqMessageReceived,
-            ('message_received', 'publish'): PublishMessageReceived,
-            ('message_received', 'keepalive'): KeepAliveMessageReceived,
-            ('message_received', 'asc_pull_ack'): AscPullAckMessageReceived,
-            ('message_received', 'asc_pull_req'): AscPullReqMessageReceived,
-            ('message_received', 'node_id_handshake'): NodeIdHandshakeMessageReceived,
-            ('message_received', 'telemetry_req'): TelemetryReqMessageReceived,
-            ('message_received', 'telemetry_ack'): TelemetryAckMessageReceived,
-            ('message_received', 'bulk_pull_account'): BulkPullAccountMessageReceived,
-            ('message_received', 'frontier_req'): FrontierReqMessageReceived,
-            ('message_received', 'bulk_push'): BulkPushMessageReceived,
-        }
         self.common_pattern = {
             ('network_processed', 'confirm_ack'): ConfirmAckMessageReceived,
             ('network_processed', 'confirm_req'): ConfirmReqMessageReceived,
@@ -89,6 +49,7 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
             ("bulk_pull_account_client", "requesting_pending"): BulkPullAccountPendingMessage,
             ("election_scheduler", "block_activated"): SchedulerBlockActivatedMessage,
             ("vote_generator", "candidate_processed"): VoteGeneratorCandidateProcessedMessage,
+            ("channel_send_result", "*"): ChannelSendResultMessage
         }
         self.content_based_identifiers = {
             "blockprocessor": {
@@ -104,15 +65,20 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
         log_process = json.get('log_process')
         log_event = json.get('log_event')
 
-        if log_process == 'channel':
-            header_type = json["message"].get('header', {}).get('type')
-            return self.get_channel.get((log_event, header_type), UnknownMessage)
-        elif log_process == 'network':
-            header_type = json["message"].get('header', {}).get('type')
-            return self.get_network.get((log_event, header_type), UnknownMessage)
-        elif log_event is not None:
-            return self.common_pattern.get((log_process, log_event), UnknownMessage)
-        else:
+        # First, try direct lookup using log_process and log_event
+        direct_result = self.common_pattern.get((log_process, log_event))
+        if direct_result is not None:
+            return direct_result
+
+        # If direct lookup fails, check for wildcard patterns
+        for (pattern_process, pattern_event), message_type in self.common_pattern.items():
+            if '*' in (pattern_process, pattern_event):  # Check if either part has a wildcard
+                if (pattern_process == log_process or pattern_process == '*') and \
+                        (pattern_event == log_event or pattern_event == '*'):
+                    return message_type
+
+        # If both direct lookup and wildcard check fail, then check based on content
+        if log_event is None:
             content = json.get('content')
             content_identifiers = self.content_based_identifiers.get(
                 log_process, {})
@@ -120,7 +86,7 @@ class MessageTypeIdentifier(IMessageTypeIdentifier):
                 if pattern.search(content):
                     return message_class
 
-            return UnknownMessage
+        return UnknownMessage  # Return default if no match found
 
 
 class MessageToJsonConverter(IMessageToJsonConverter):

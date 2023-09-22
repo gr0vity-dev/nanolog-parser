@@ -1,5 +1,6 @@
 import sqlite3
 from nanolog_parser.src.storage.impl.sql_message_maps import MessageMapperRegistry
+import re
 
 
 class SQLiteStorage:
@@ -82,6 +83,19 @@ class SQLiteRepository:
         self.created_tables.add(table_name)
 
     def insert_data(self, table_name, data):
+        while True:
+            try:
+                return self._attempt_insert(table_name, data)
+            except sqlite3.OperationalError as exc:
+                missing_column = self._identify_missing_column(str(exc))
+                if missing_column:
+                    self._add_column_to_table(
+                        table_name, missing_column, data[missing_column])
+                else:
+                    # if we can't identify the column or another error occurs, raise the error
+                    raise exc
+
+    def _attempt_insert(self, table_name, data):
         placeholders = ', '.join(['?'] * len(data))
         columns = ', '.join(data.keys())
         values = tuple(data.values())
@@ -92,9 +106,8 @@ class SQLiteRepository:
         try:
             self.cursor.execute(query, values)
             self.maybe_commit()
-            return self.cursor.lastrowid  # return the last inserted id
+            return self.cursor.lastrowid
         except sqlite3.IntegrityError:
-            # Now we need to get the id of the existing or inserted row
             select_placeholders = ' AND '.join(
                 [f'{column} = ?' for column in data.keys()])
             select_query = f"""
@@ -104,6 +117,28 @@ class SQLiteRepository:
             self.cursor.execute(select_query, values)
             row = self.cursor.fetchone()
             return row[0] if row else None
+
+    def _identify_missing_column(self, error_message):
+        match = re.search(r'has no column named (\w+)', error_message)
+        return match.group(1) if match else None
+
+    def _add_column_to_table(self, table_name, column, value):
+        # This gets the sqlite column type based on the provided value (you can expand this method as needed)
+        column_type = self._get_sqlite_column_type(value)
+        alter_query = f"ALTER TABLE {table_name} ADD COLUMN {column} {column_type}"
+        self.cursor.execute(alter_query)
+        self.maybe_commit()
+
+    def _get_sqlite_column_type(self, value):
+        TYPE_MAPPING = {
+            int: 'INTEGER',
+            float: 'REAL',
+            str: 'TEXT',
+            bool: 'INTEGER',
+            bytes: 'BLOB',
+            type(None): 'TEXT'
+        }
+        return TYPE_MAPPING.get(type(value), 'TEXT')
 
     def maybe_commit(self):
         # Increment the batch counter

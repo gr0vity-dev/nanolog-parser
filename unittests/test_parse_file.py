@@ -74,7 +74,7 @@ def test_parser_text_output(setup_text_db):
     hash_result = compute_db_hash("unittest_text.db")
 
     # Step 4: Compare the hash
-    expected_hash = "8ebf16de4ddba266cde3e889094a91f4b78995a44ce618614bc4821bd3d897a1"
+    expected_hash = "db250c0de457d4ead2c0a6f27314748792b7ee8e9789349d565454b94369fa55"
     assert hash_result == expected_hash, f"Expected {expected_hash}, but got {hash_result}"
 
 
@@ -89,7 +89,7 @@ def test_parser_json_output(setup_json_db):
     hash_result = compute_db_hash("unittest_json.db")
 
     # Step 4: Compare the hash
-    expected_hash = "8975958213c406365efef439a2c0e03f3896df8d8901f4122c96a5c29833a4a6"
+    expected_hash = "bee56df370fea2da6ad62da935c85777de0ca319f860848565482e0809a4f14e"
     assert hash_result == expected_hash, f"Expected {expected_hash}, but got {hash_result}"
 
 

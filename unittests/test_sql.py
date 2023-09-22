@@ -49,7 +49,7 @@ NETWORK_COMMON_PROPERTIES = COMMON_PROPERTIES + [
 
 def test_store_filename_in_message():
     filename = 'sample_log.log'
-    line = '[2023-07-15 14:19:45.832] [network_processed] [trace] "message_received" message: { header: { type: "asc_pull_req", network: "live", network_int: 21059, version: 19, version_min: 18, version_max: 19, extensions: 34 }, id: 12094529471189612132, start: "62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type: "account", count: 128 }'
+    line = '[2023-07-15 14:19:45.832] [network_processed] [trace] "asc_pull_req" message: { header: { type: "asc_pull_req", network: "live", network_int: 21059, version: 19, version_min: 18, version_max: 19, extensions: 34 }, id: 12094529471189612132, start: "62D480D111E8D81423BEAD85C869AD22AE1430D7BA11A4A1158F7FF316AB5EC0", start_type: "account", count: 128 }'
     properties = COMMON_PROPERTIES + ['log_file']
     store_message(line, AscPullReqMessage, properties, filename=filename)
 

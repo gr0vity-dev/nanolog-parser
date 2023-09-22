@@ -68,7 +68,9 @@ class ElectionGenerateVoteFinalMessageMapper(SqlBaseMapperMixin, MessageMixin, I
 
 
 class UnknownMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
-    sql_columns = {"content"}
+    sql_columns = {"log_timestamp", "log_process",
+                   "log_level", "log_event", "log_file", "content"}
+    add_columns_dynamic = False
 
 
 class PublishMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
@@ -215,3 +217,7 @@ class ElectionBroadcastVoteMessageMapper(RelationsMixin, SqlBaseMapperMixin, Mes
 class VoteGeneratorCandidateProcessedMessageMapper(RelationsMixin, SqlBaseMapperMixin, MessageMixin, IMapper):
     sql_columns = {"should_vote", "is_final"}
     sql_relation = {"block"}
+
+
+class ChannelSendResultMessageMapper(SqlBaseMapperMixin, MessageMixin, IMapper):
+    pass
