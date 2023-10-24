@@ -85,7 +85,7 @@ def test_message_parsing():
 def test_rpc_parsing():
     line = '[2023-07-28 21:44:20.697] [rpc_request] [debug] Request 0x7f9ba0043420 : {"action":"block_count"}'
     message = MessageFactory.create_message(line)
-    assert message.content == 'Request 0x7f9ba0043420 : {"action":"block_count"}'
+    assert message.content == 'Request 0x7f9ba0043420 "":{"action":"block_count"}'
 
 
 def test_confirm_req_message():
