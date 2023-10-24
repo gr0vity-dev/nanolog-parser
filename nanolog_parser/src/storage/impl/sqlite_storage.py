@@ -111,7 +111,7 @@ class SQLiteRepository:
             select_placeholders = ' AND '.join(
                 [f'{column} = ?' for column in data.keys()])
             select_query = f"""
-            SELECT id FROM {table_name}
+            SELECT sql_id FROM {table_name}
             WHERE {select_placeholders}
             """
             self.cursor.execute(select_query, values)

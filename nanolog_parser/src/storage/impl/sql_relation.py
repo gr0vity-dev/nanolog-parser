@@ -117,7 +117,7 @@ class HashableMapper(MapperMixin, IMapper):
 
     def get_table_schema(self):
 
-        schema = [('id', 'integer primary key')]
+        schema = [('sql_id', 'integer primary key')]
         for key, _ in self.data.items():
             # if isinstance(value, int):
             #     schema.append((key, 'integer'))
@@ -128,9 +128,9 @@ class HashableMapper(MapperMixin, IMapper):
         return schema
 
     def get_unique_constraints(self):
-        # Unique constraint for all columns, excluding 'id'
+        # Unique constraint for all columns, excluding 'sql_id'
         keys = [column for column, _ in self.get_table_schema()
-                if column != 'id']
+                if column != 'sql_id']
         return keys
 
 

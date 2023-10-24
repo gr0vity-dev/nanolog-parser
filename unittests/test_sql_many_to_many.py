@@ -439,7 +439,7 @@ def assert_related_entities_in_table(storage, message_class_name, relationship):
 
     # Assert the entity in '{relationship}' table is correctly related to the message in 'message_{relationship}' table
     for i, entity in enumerate(stored_entities_list):
-        assert stored_message_entities_list[i]['relation_id'] == entity['id']
+        assert stored_message_entities_list[i]['relation_id'] == entity['sql_id']
         assert stored_message_entities_list[i][
             'message_type'] == message_class_name.lower()
         assert stored_message_entities_list[i]['message_id'] == 1
