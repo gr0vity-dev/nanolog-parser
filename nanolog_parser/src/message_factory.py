@@ -15,3 +15,10 @@ class MessageFactory:
 
         return log_parser.parse_log(line,
                                     filename)  # pass filename to parse_message
+
+    def message_get_json(line, filename=None):
+
+        log_parser = LogParser(json_converter, identifier)
+
+        return log_parser.parse_to_json(line,
+                                    filename)  # pass filename to parse_message

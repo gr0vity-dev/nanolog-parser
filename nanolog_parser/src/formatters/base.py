@@ -27,3 +27,12 @@ class MessageCreatorMixin:
             print(exc)
             self.ignored_lines += 1
             return None
+    
+    def message_get_json(self, line, filename):
+        try:
+            message = MessageFactory.message_get_json(line, filename)
+            return message
+        except ParseException as exc:
+            print(exc)
+            self.ignored_lines += 1
+            return None

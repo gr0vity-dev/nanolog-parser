@@ -3,7 +3,7 @@
 import argparse
 from nanolog_parser.src.formatters import IFormatter, JsonFormatter, TextFormatter
 from nanolog_parser.src.storage.impl.sqlite_storage import SQLiteStorage
-from src.formatters.jsondb import JSONFlattener
+from nanolog_parser.src.formatters.jsondb import JSONFlattener
 from sqlalchemy import create_engine,Table, MetaData, Index
 import pandas as pd
 
@@ -78,6 +78,8 @@ def main():
     if args.format == "flat":
             json_lines = []
             with open(args.file, 'r', encoding='utf-8') as file:
+                log_parser = NanoLogParser(formatter, None)
+                print(f"Storing messages in SQL database: {args.db}\n")       
                 for line in file:
                     json_lines.append(log_parser.process_flat(line.strip(), args.node or args.file))
                 
