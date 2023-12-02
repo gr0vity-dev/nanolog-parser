@@ -3,9 +3,10 @@ from nanolog_parser.src.formatters.base import IFormatter
 import json
 
 class JSONFlattener(IFormatter):
-    def __init__(self, max_depth=5):
+    def __init__(self, max_depth=5, root_name="log"):
         self.max_depth = max_depth
-        self.sql_id_counters = {'root': 0}
+        self.root_name = root_name
+        self.sql_id_counters = {root_name: 0}
         self.accumulated_children = {}
         self.mappings = []
         self.child_hash_to_sql_id = {}
@@ -14,9 +15,16 @@ class JSONFlattener(IFormatter):
     def format(self, json, filename):
         return self.flatten(json)
     
+    def to_json_tables(self, json_lines):
+        results, accumulated_children, mappings = self.flatten_json(json_lines)
+        accumulated_children[self.root_name] = results
+        accumulated_children["mappings"] = mappings
+        return self.accumulated_children
+    
     def flatten_json(self, json_lines):
         results = []
-        for line in json_lines:            
+        for line in json_lines:
+            if not line : continue
             result, _ = self.flatten(line)
             results.append(result)
         return results, self.accumulated_children, self.mappings
@@ -27,7 +35,7 @@ class JSONFlattener(IFormatter):
             json_data = json.loads(line)
             result, _ = self.flatten(json_data)
             results.append(result)
-        return results, self.accumulated_children, self.mappings
+        return results, self.accumulated_children, self.mappings    
 
     def flatten(self, json_data, depth=0, parent_info=None, child_info=None):
         if depth > self.max_depth:
@@ -56,8 +64,8 @@ class JSONFlattener(IFormatter):
     
     
     def _flatten_dict(self, d, depth, parent_info, child_info):
-        dict_type = child_info[0] if child_info else "root"
-        self._increment_sql_id_counter(dict_type) if dict_type == "root" else None
+        dict_type = child_info[0] if child_info else self.root_name
+        self._increment_sql_id_counter(dict_type) if dict_type == self.root_name else None
         
         main_object = {"sql_id": self.sql_id_counters.get(dict_type, 1)}
         parent_info = self._update_parent_info(parent_info)
@@ -76,7 +84,7 @@ class JSONFlattener(IFormatter):
         return main_object, self.sql_id_counters
 
     def _flatten_list(self, lst, depth, parent_info, child_info):
-        list_type = child_info[0] if child_info else "root"
+        list_type = child_info[0] if child_info else self.root_name
         items = []
         for item in lst:
             if isinstance(item, (dict, list)):
@@ -92,7 +100,7 @@ class JSONFlattener(IFormatter):
         self.sql_id_counters[type_name] = self.sql_id_counters.get(type_name, 1) - 1
 
     def _update_parent_info(self, parent_info):            
-        return parent_info or ("root", self.sql_id_counters["root"])
+        return parent_info or (self.root_name, self.sql_id_counters[self.root_name])
 
     def _accumulate_children(self, key, child, parent):        
         if isinstance(child, list):
