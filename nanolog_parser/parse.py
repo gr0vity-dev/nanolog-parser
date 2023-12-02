@@ -8,6 +8,9 @@ from sqlalchemy import create_engine,Table, MetaData, Index
 import pandas as pd
 
 
+"for i in $SETUP_NODES; do for log_file in $(docker inspect $i | jq -r '.[0].LogPath')*; do echo --file $log_file --node $i; done; done | xargs nanologp --format flat --db $DB_NAME"
+
+
 def get_args():
     parser = argparse.ArgumentParser(description="NanoLog Parser")
 
@@ -16,11 +19,10 @@ def get_args():
                         choices=['json', 'text', 'flat'], help="Specify the format: json or text.")
     parser.add_argument('--db', type=str, default="parsed_messages.db",
                         help="Path to the database where parsed messages will be stored.")
-    parser.add_argument('--file', type=str,
-                        help="Name of the file being parsed.", required=True)
-    parser.add_argument('--node', type=str,
-                        help="Name of node. If provided, instead of 'file', 'node' is written to log_filename ")
-
+    
+    parser.add_argument('--file-node', nargs=2, action='append',
+                        help="Pairs of file and node names", required=True)
+    
     return parser.parse_args()
 
 
@@ -78,35 +80,43 @@ def main():
     elif args.format == "flat":  
         formatter = JsonFormatter()      
         flattener = JSONFlattener()
+        flattener.add_key_mappings({"block": "blocks", "vote": "votes"})
     else:
         print(f"Unsupported format: {args.format}")
         return
 
     if args.format == "flat":
-            json_lines = []
-            with open(args.file, 'r', encoding='utf-8') as file:
-                log_parser = NanoLogParser(formatter, None)
-                print(f"Storing messages in SQL database: {args.db}\n")       
+        json_lines = []
+        log_parser = NanoLogParser(formatter, None)
+        print(f"Storing messages in SQL database: {args.db}\n")
+
+        for file_node_pair in args.file_node:
+            file_name, node_name = file_node_pair
+            with open(file_name, 'r', encoding='utf-8') as file:
+                print(f"Processing {node_name}\n")
                 for line in file:
-                    json_lines.append(log_parser.process_flat(line.strip(), args.node or args.file))
+                    json_lines.append(log_parser.process_flat(line.strip(), node_name))      
                 
-                # main, children, mapping = flattener.flatten_json(json_lines)
-                print(f"Converting to json tables \n")
-                tables = flattener.to_json_tables(json_lines)
-                print(f"Converting to dataframes\n")
-                dataframes = {table_name: pd.DataFrame(rows) for table_name, rows in tables.items()}
-                connection_string = f"sqlite:///{args.db}"  # Or your PostgreSQL connection string
-                engine = create_db_engine(connection_string)
-                print(f"Writing to sqlite \n")
-                write_to_db(engine, dataframes)
+        # main, children, mapping = flattener.flatten_json(json_lines)
+        print(f"Converting to json tables \n")
+        tables = flattener.to_json_tables(json_lines)
+        print(f"Converting to dataframes\n")
+        dataframes = {table_name: pd.DataFrame(rows) for table_name, rows in tables.items()}
+        connection_string = f"sqlite:///{args.db}"  # Or your PostgreSQL connection string
+        engine = create_db_engine(connection_string)
+        print(f"Writing to sqlite \n")
+        write_to_db(engine, dataframes)
     else:
         with SQLiteStorage(args.db) as storage:
             log_parser = NanoLogParser(formatter, storage)
             print(f"Storing messages in SQL database: {args.db}\n")              
             
-            with open(args.file, 'r', encoding='utf-8') as file:
-                for line in file:
-                    log_parser.process(line.strip(), args.node or args.file)
+            for file_node_pair in args.file_node:
+                file_name, node_name = file_node_pair
+                with open(file_name, 'r', encoding='utf-8') as file:
+                    print(f"Processing {node_name}\n")
+                    for line in file:
+                        log_parser.process(line.strip(), node_name)
 
     print(f"\nTotal messages processed: {log_parser.message_count}")
     print(f"Messages stored in SQL database: {args.db}")
