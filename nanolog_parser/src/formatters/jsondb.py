@@ -3,16 +3,23 @@ from nanolog_parser.src.formatters.base import IFormatter
 import json
 
 class JSONFlattener(IFormatter):
-    def __init__(self, max_depth=5, use_hash=True):
+    def __init__(self, max_depth=5):
         self.max_depth = max_depth
-        self.use_hash = use_hash
         self.sql_id_counters = {'root': 0}
         self.accumulated_children = {}
         self.mappings = []
-        self.child_hash_to_sql_id = {}  # Maps child hashes to sql_id for unique children
+        self.child_hash_to_sql_id = {}
+        self.key_mappings = {}  # Stores user-defined key mappings
     
     def format(self, json, filename):
         return self.flatten(json)
+    
+    def flatten_json(self, json_lines):
+        results = []
+        for line in json_lines:            
+            result, _ = self.flatten(line)
+            results.append(result)
+        return results, self.accumulated_children, self.mappings
     
     def flatten_lines(self, json_lines):
         results = []
@@ -33,6 +40,21 @@ class JSONFlattener(IFormatter):
         else:
             return json_data, self.sql_id_counters
 
+    def add_key_mappings(self, mappings):
+        """
+        Add mappings for keys. This method allows the user to define that certain keys
+        should be considered equivalent when processing JSON data.
+        :param mappings: A dictionary of key mappings, where each key is mapped to its equivalent key.
+        """
+        self.key_mappings.update(mappings)
+
+    def _get_mapped_key(self, key):
+        """
+        Returns the mapped key if it exists in the key_mappings, otherwise returns the original key.
+        """
+        return self.key_mappings.get(key, key)
+    
+    
     def _flatten_dict(self, d, depth, parent_info, child_info):
         dict_type = child_info[0] if child_info else "root"
         self._increment_sql_id_counter(dict_type) if dict_type == "root" else None
@@ -41,22 +63,15 @@ class JSONFlattener(IFormatter):
         parent_info = self._update_parent_info(parent_info)
         
 
-        for key, value in d.items():
+        for lookup_key, value in d.items():
+            key = self._get_mapped_key(lookup_key)
             if isinstance(value, (dict, list)):
                 flattened, _ = self.flatten(
                     value, depth + 1, child_info, (key, main_object["sql_id"])
                 )
-                self._accumulate_child(key, flattened, parent_info)                
+                self._accumulate_children(key, flattened, parent_info)                
             else:
                 main_object[key] = value
-       
-        # if child_info:
-        #     self.mappings.append({
-        #             "main_type": parent_info[0],
-        #             "main_sql_id": parent_info[1],
-        #             "link_type": child_info[0],
-        #             "link_sql_id": self.sql_id_counters.get(child_info[0],1)
-        #         })
         
         return main_object, self.sql_id_counters
 
@@ -79,40 +94,41 @@ class JSONFlattener(IFormatter):
     def _update_parent_info(self, parent_info):            
         return parent_info or ("root", self.sql_id_counters["root"])
 
-    def _accumulate_child(self, key, child, parent):
-        if self.use_hash:                      
-            child_hash = self._hash_dict(child)
-            if child_hash not in self.child_hash_to_sql_id:
-                # This is a new unique child, so store its hash and sql_id
-                self.child_hash_to_sql_id[child_hash] = self.sql_id_counters.get(key, 1)
-                self.accumulated_children.setdefault(key, []).append(child)
-                self.mappings.append({
-                    "main_type": parent[0],
-                    "main_sql_id": parent[1],
-                    "link_type": key,
-                    "link_sql_id": self.sql_id_counters.get(key,1)
-                })  
-                self._increment_sql_id_counter(key)
-            else:
-                self.mappings.append({
-                    "main_type": parent[0],
-                    "main_sql_id": parent[1],
-                    "link_type": key,
-                    "link_sql_id": self.child_hash_to_sql_id[child_hash]
-                })  
+    def _accumulate_children(self, key, child, parent):        
+        if isinstance(child, list):
+            for item in child:
+                self._process_child_item(key, item, parent)
         else:
-            self.accumulated_children.setdefault(key, []).append(child)
+            self._process_child_item(key, child, parent)
 
-    def _hash_dict(self, d):
-        if isinstance(d, dict):
-            # Exclude 'sql_id' from the hash calculation
-            d_filtered = {k: v for k, v in d.items() if k != 'sql_id'}
-            d_string = str(sorted(d_filtered.items()))
-        elif isinstance(d, list):
-            # Handle list: sort the list to create a consistent representation
-            d_string = str(sorted(d))
+    def _process_child_item(self, key, item, parent):        
+        item_hash = self._hash_dict(key,item)
+        if item_hash not in self.child_hash_to_sql_id:
+            # This is a new unique item, so store its hash and sql_id
+            self.child_hash_to_sql_id[item_hash] = self.sql_id_counters.get(key, 1)
+            self.accumulated_children.setdefault(key, []).append(item)
+            link_sql_id = self.child_hash_to_sql_id[item_hash]
+            self._add_mapping(parent, key, link_sql_id)
+            self._increment_sql_id_counter(key)
         else:
-            # For other types, use the string representation
-            d_string = str(d)
+            # For a duplicate item, use the existing sql_id
+            link_sql_id = self.child_hash_to_sql_id[item_hash]
+            self._add_mapping(parent, key, link_sql_id)
+
+    def _add_mapping(self, parent, key, link_sql_id):
+        mapping = {
+            "main_type": parent[0],
+            "main_sql_id": parent[1],
+            "link_type": key,
+            "link_sql_id": link_sql_id
+        }
+        self.mappings.append(mapping)
+
+    def _hash_dict(self, key,d):
+        assert(isinstance(d, dict))       
+        # Exclude 'sql_id' from the hash calculation
+        d_filtered = {k: v for k, v in d.items() if k != 'sql_id'}
+        d_string = str(key) + str(sorted(d_filtered.items()))
+      
 
         return hashlib.md5(d_string.encode()).hexdigest()

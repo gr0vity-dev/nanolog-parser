@@ -70,3 +70,70 @@ def test_flatten_lines_4():
     assert actual_result == expected_result
     assert children == expected_children
     assert mappings == expected_mappings
+    
+    
+    
+    
+sample_json_lines5 = """{"type": "employee", "id": 1, "entries": [{"hash": "X"},{"hash": "Y"},{"hash": "Z"} ]}
+{"type": "else", "entries": [{"hash": "X"},{"hash": "A"}]}"""
+
+
+#Same nested element
+def test_flatten_lines_5():
+    expected_result = [{"sql_id": 1,"type": "employee","id": 1},
+                       {"sql_id": 2,"type": "else"}]
+    
+    expected_children =  { "entries": [{"sql_id": 1,"hash": "X"},
+                                       {"sql_id": 1,"hash": "Y"},
+                                       {"sql_id": 1,"hash": "Z"},
+                                       {"sql_id": 4,"hash": "A"}]}
+    
+    expected_mappings =[{"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 1},
+                        {"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 2},
+                        {"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 3},
+                        {"main_type": "root","main_sql_id": 2,"link_type": "entries","link_sql_id": 1},
+                        {"main_type": "root","main_sql_id": 2,"link_type": "entries","link_sql_id": 4}]
+    
+    actual_result, children, mappings = JSONFlattener().flatten_lines(sample_json_lines5)
+    
+    assert actual_result == expected_result
+    assert children == expected_children
+    assert mappings == expected_mappings
+
+
+sample_json_lines6 = """{"type": "employee", "id": 1, "entries": [{"hash": "X"},{"hash": "Y"},{"hash": "Z"} ]}
+{"type": "else", "entry": {"hash": "X"}}
+{"type": "else", "entry": {"hash": "A"}}"""
+#Same nested element
+def test_flatten_lines_6():
+    expected_result = [{"sql_id": 1,"type": "employee","id": 1},
+                       {"sql_id": 2,"type": "else"},
+                       {"sql_id": 3,"type": "else"}]
+    
+    expected_children =  { "entries": [{"sql_id": 1,"hash": "X"},
+                                       {"sql_id": 1,"hash": "Y"},
+                                       {"sql_id": 1,"hash": "Z"},
+                                       {"sql_id": 4,"hash": "A"}]}
+    
+    expected_mappings =[{"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 1},
+                        {"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 2},
+                        {"main_type": "root","main_sql_id": 1,"link_type": "entries","link_sql_id": 3},
+                        {"main_type": "root","main_sql_id": 2,"link_type": "entries","link_sql_id": 1},
+                        {"main_type": "root","main_sql_id": 3,"link_type": "entries","link_sql_id": 4}]
+    
+    flattener = JSONFlattener()
+    flattener.add_key_mappings({"entry" : "entries"})
+    
+   
+    
+    actual_result, children, mappings = flattener.flatten_lines(sample_json_lines6)
+    
+    import json
+    print(json.dumps(flattener.key_mappings, indent=4))
+    print(json.dumps(actual_result, indent=4))
+    print(json.dumps(children, indent=4))
+    print(json.dumps(mappings, indent=4))
+ 
+    assert actual_result == expected_result
+    assert children == expected_children
+    assert mappings == expected_mappings
