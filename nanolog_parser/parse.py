@@ -59,7 +59,14 @@ def create_db_engine(connection_string):
 
 def write_to_db(engine, dataframes):
     for table_name, df in dataframes.items():
-        df.to_sql(table_name, engine, if_exists='replace', index=False)
+        # Convert all columns of the dataframe to string type
+        df = df.astype(str)
+        
+        try:
+            df.to_sql(table_name, engine, if_exists='replace', index=False)
+        except Exception as e:
+            print(f"Error writing table {table_name}: {e}")
+
 
 def main():
     args = get_args()
