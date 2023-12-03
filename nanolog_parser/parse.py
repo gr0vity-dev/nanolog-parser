@@ -21,6 +21,10 @@ def get_args():
                         help="Path to the database where parsed messages will be stored.")    
     parser.add_argument('--file-node', nargs=2, action='append',
                         help="Pairs of file and node names", required=True)
+    parser.add_argument('--inject-table', type=str,
+                        help="Path to the json contaning additional tables")
+    parser.add_argument('--inject-json', type=str,
+                        help="Path to the json contaning additional tables")  
     
     return parser.parse_args()
 
@@ -110,10 +114,25 @@ def main():
         file_read_time += time.time() - file_start_time
 
     print(f"File reading and processing time: {file_read_time:.2f} seconds")
-
+    # Read and merge additional tables from JSON file if the argument is provided
+    if args.inject_json:
+        print(f"Injecting json {args.inject_json} \n")
+        with open(args.inject_json, 'r') as json_file:
+            for line in json_file:
+                json_lines.append(log_parser.process_json(line))           
+            
     json_to_tables_start_time = time.time()
     print(f"Converting to json tables \n")
     tables = flattener.to_json_tables(json_lines)
+    
+    # Read and merge additional tables from JSON file if the argument is provided
+    if args.inject_table:
+        print(tables.get("header"))
+        print(f"Injecting table {args.inject_table} \n")
+        with open(args.inject_table, 'r') as json_file:
+            additional_tables = json.load(json_file)
+            tables.update(additional_tables)
+
     print(f"Time taken to convert to JSON tables: {time.time() - json_to_tables_start_time:.2f} seconds")
 
     dataframes_start_time = time.time()
