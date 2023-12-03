@@ -15,10 +15,9 @@ def get_args():
 
     # Modify the argument here:
     parser.add_argument('--format', type=str, required=True,
-                        choices=['json', 'text', 'flat'], help="Specify the format: json or text.")
+                        choices=['json', 'docker_json'], help="Specify the format: json or text.")
     parser.add_argument('--db', type=str, default="parsed_messages.db",
-                        help="Path to the database where parsed messages will be stored.")
-    
+                        help="Path to the database where parsed messages will be stored.")    
     parser.add_argument('--file-node', nargs=2, action='append',
                         help="Pairs of file and node names", required=True)
     
@@ -48,7 +47,11 @@ class NanoLogParser:
         if message and message.get("log_level") == "trace" :
             message.pop("content")
         self._increment_and_display_progress()
-        return message    
+        return message
+    
+    def process_json(self, json_line):  # Add filename parameter       
+        self._increment_and_display_progress()
+        return json_line 
 
     def _increment_and_display_progress(self):
         self.message_count += 1
@@ -76,10 +79,8 @@ def main():
     args = get_args()
 
     if args.format == "json":
-        formatter = JsonFormatter()
-    elif args.format == "text":
-        formatter = TextFormatter()
-    elif args.format == "flat":  
+        formatter = JsonFormatter()  
+    elif args.format == "docker_json":  
         formatter = JsonFormatter()      
         flattener = JSONFlattener()
         flattener.add_key_mappings({"block": "blocks", "vote": "votes", "hash" : "hashes", "winner": "blocks"})
@@ -103,7 +104,10 @@ def main():
             with open(file_name, 'r', encoding='utf-8') as file:
                 print(f"Processing {node_name}\n")
                 for line in file:
-                    json_lines.append(log_parser.process_flat(line.strip(), node_name))
+                    if args.format == "docker_json":                        
+                        json_lines.append(log_parser.process_flat(line.strip(), node_name))
+                    else:
+                        json_lines.append(log_parser.process_json(line))
             file_read_time += time.time() - file_start_time
 
         print(f"File reading and processing time: {file_read_time:.2f} seconds")
@@ -128,17 +132,6 @@ def main():
         total_time = time.time() - start_time
         print(f"Total execution time: {total_time:.2f} seconds")
 
-    else:
-        with SQLiteStorage(args.db) as storage:
-            log_parser = NanoLogParser(formatter, storage)
-            print(f"Storing messages in SQL database: {args.db}\n")              
-            
-            for file_node_pair in args.file_node:
-                file_name, node_name = file_node_pair
-                with open(file_name, 'r', encoding='utf-8') as file:
-                    print(f"Processing {node_name}\n")
-                    for line in file:
-                        log_parser.process(line.strip(), node_name)
 
     print(f"\nTotal messages processed: {log_parser.message_count}")
     print(f"Messages stored in SQL database: {args.db}")
