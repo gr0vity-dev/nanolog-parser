@@ -82,7 +82,7 @@ def main():
     elif args.format == "flat":  
         formatter = JsonFormatter()      
         flattener = JSONFlattener()
-        flattener.add_key_mappings({"block": "blocks", "vote": "votes"})
+        flattener.add_key_mappings({"block": "blocks", "vote": "votes", "hash" : "hashes", "winner": "blocks"})
     else:
         print(f"Unsupported format: {args.format}")
         return
