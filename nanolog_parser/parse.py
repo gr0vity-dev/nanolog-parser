@@ -7,6 +7,7 @@ from nanolog_parser.src.formatters.jsondb import JSONFlattener
 from sqlalchemy import create_engine,Table, MetaData, Index, text
 import pandas as pd
 import time
+import json
 
 
 
@@ -15,7 +16,7 @@ def get_args():
 
     # Modify the argument here:
     parser.add_argument('--format', type=str, required=True,
-                        choices=['json', 'docker_json'], help="Specify the format: json or text.")
+                        choices=['json', 'nano_docker'], help="Specify the format: json or text.")
     parser.add_argument('--db', type=str, default="parsed_messages.db",
                         help="Path to the database where parsed messages will be stored.")    
     parser.add_argument('--file-node', nargs=2, action='append',
@@ -51,7 +52,7 @@ class NanoLogParser:
     
     def process_json(self, json_line):  # Add filename parameter       
         self._increment_and_display_progress()
-        return json_line 
+        return json.loads(json_line)
 
     def _increment_and_display_progress(self):
         self.message_count += 1
@@ -76,61 +77,59 @@ def write_to_db(engine, dataframes):
 
 
 def main():
-    args = get_args()
+    args = get_args()    
+    
 
+    formatter = JsonFormatter()      
+    flattener = JSONFlattener()
+    
     if args.format == "json":
-        formatter = JsonFormatter()  
-    elif args.format == "docker_json":  
-        formatter = JsonFormatter()      
-        flattener = JSONFlattener()
+        pass
+    elif args.format == "nano_docker":         
         flattener.add_key_mappings({"block": "blocks", "vote": "votes", "hash" : "hashes", "winner": "blocks"})
     else:
         print(f"Unsupported format: {args.format}")
         return
+        
+    start_time = time.time()
+    json_lines = []
+    log_parser = NanoLogParser(formatter, None)
+    print(f"Storing messages in SQL database: {args.db}\n")
 
-    import time
+    file_read_time = 0
+    for file_node_pair in args.file_node:
+        file_name, node_name = file_node_pair
+        file_start_time = time.time()
+        with open(file_name, 'r', encoding='utf-8') as file:
+            print(f"Processing {node_name}\n")
+            for line in file:
+                if args.format == "nano_docker":                        
+                    json_lines.append(log_parser.process_flat(line.strip(), node_name))
+                else:
+                    json_lines.append(log_parser.process_json(line))
+        file_read_time += time.time() - file_start_time
 
-    if args.format == "flat":
-        start_time = time.time()
+    print(f"File reading and processing time: {file_read_time:.2f} seconds")
 
-        json_lines = []
-        log_parser = NanoLogParser(formatter, None)
-        print(f"Storing messages in SQL database: {args.db}\n")
+    json_to_tables_start_time = time.time()
+    print(f"Converting to json tables \n")
+    tables = flattener.to_json_tables(json_lines)
+    print(f"Time taken to convert to JSON tables: {time.time() - json_to_tables_start_time:.2f} seconds")
 
-        file_read_time = 0
-        for file_node_pair in args.file_node:
-            file_name, node_name = file_node_pair
-            file_start_time = time.time()
-            with open(file_name, 'r', encoding='utf-8') as file:
-                print(f"Processing {node_name}\n")
-                for line in file:
-                    if args.format == "docker_json":                        
-                        json_lines.append(log_parser.process_flat(line.strip(), node_name))
-                    else:
-                        json_lines.append(log_parser.process_json(line))
-            file_read_time += time.time() - file_start_time
+    dataframes_start_time = time.time()
+    print(f"Converting to dataframes\n")
+    dataframes = {table_name: pd.DataFrame(rows) for table_name, rows in tables.items()}
+    print(f"Time taken to convert to DataFrames: {time.time() - dataframes_start_time:.2f} seconds")
 
-        print(f"File reading and processing time: {file_read_time:.2f} seconds")
+    db_write_start_time = time.time()
+    connection_string = f"sqlite:///{args.db}"  # Or your PostgreSQL connection string
+    engine = create_db_engine(connection_string)
+    print(f"Writing to sqlite \n")
+    write_to_db(engine, dataframes)
+    print(f"Time taken to write to DB: {time.time() - db_write_start_time:.2f} seconds")
 
-        json_to_tables_start_time = time.time()
-        print(f"Converting to json tables \n")
-        tables = flattener.to_json_tables(json_lines)
-        print(f"Time taken to convert to JSON tables: {time.time() - json_to_tables_start_time:.2f} seconds")
-
-        dataframes_start_time = time.time()
-        print(f"Converting to dataframes\n")
-        dataframes = {table_name: pd.DataFrame(rows) for table_name, rows in tables.items()}
-        print(f"Time taken to convert to DataFrames: {time.time() - dataframes_start_time:.2f} seconds")
-
-        db_write_start_time = time.time()
-        connection_string = f"sqlite:///{args.db}"  # Or your PostgreSQL connection string
-        engine = create_db_engine(connection_string)
-        print(f"Writing to sqlite \n")
-        write_to_db(engine, dataframes)
-        print(f"Time taken to write to DB: {time.time() - db_write_start_time:.2f} seconds")
-
-        total_time = time.time() - start_time
-        print(f"Total execution time: {total_time:.2f} seconds")
+    total_time = time.time() - start_time
+    print(f"Total execution time: {total_time:.2f} seconds")
 
 
     print(f"\nTotal messages processed: {log_parser.message_count}")
