@@ -74,24 +74,30 @@ class JSONFlattener(IFormatter):
         for lookup_key, value in d.items():
             key = self._get_mapped_key(lookup_key)
             if isinstance(value, (dict, list)):
-                flattened, _ = self.flatten(
-                    value, depth + 1, child_info, (key, main_object["sql_id"])
+                # flattened, parent = self.flatten(
+                #     value, depth + 1, child_info, (key, main_object["sql_id"])
+                # )
+                flattened, parent = self.flatten(
+                    value, depth + 1, parent_info, (key, main_object["sql_id"])
                 )
-                self._accumulate_children(key, flattened, parent_info)                
+                self._accumulate_children(key, flattened, parent)                
             else:
                 main_object[key] = value
         
-        return main_object, self.sql_id_counters
+        return main_object, parent_info
 
     def _flatten_list(self, lst, depth, parent_info, child_info):
         list_type = child_info[0] if child_info else self.root_name
+        main_object = {"sql_id": self.sql_id_counters.get(list_type, 1)}
         items = []
         for item in lst:
-            if isinstance(item, (dict, list)):
-                flattened, _ = self.flatten(item, depth + 1, parent_info, child_info)
-                items.append(flattened)
+            if not isinstance(item, (dict, list)):
+                item = {list_type: item}
+                
+            flattened, _ = self.flatten(item, depth + 1, parent_info, child_info)
+            items.append(flattened)            
 
-        return items, self.sql_id_counters
+        return items, parent_info
 
     def _increment_sql_id_counter(self, type_name):
         self.sql_id_counters[type_name] = self.sql_id_counters.get(type_name, 1) + 1
@@ -99,8 +105,9 @@ class JSONFlattener(IFormatter):
     def _decrement_sql_id_counter(self, type_name):
         self.sql_id_counters[type_name] = self.sql_id_counters.get(type_name, 1) - 1
 
-    def _update_parent_info(self, parent_info):            
-        return parent_info or (self.root_name, self.sql_id_counters[self.root_name])
+    def _update_parent_info(self, parent_info):
+        # return parent_info or (self.root_name, self.sql_id_counters[self.root_name])
+        return (self.root_name, self.sql_id_counters[self.root_name])
 
     def _accumulate_children(self, key, child, parent):        
         if isinstance(child, list):
