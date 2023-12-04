@@ -91,6 +91,8 @@ def main():
         pass
     elif args.format == "nano_docker":         
         flattener.add_key_mappings({"block": "blocks", "vote": "votes", "hash" : "hashes", "winner": "blocks"})
+        flattener.add_key_mappings({"time": "timestamp", "date": "timestamp"})
+        flattener.add_key_mappings({"voting_account": "account"})
     else:
         print(f"Unsupported format: {args.format}")
         return
